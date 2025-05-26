@@ -1,17 +1,46 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
-    <ion-title>
-      Tab 1
-    </ion-title>
+    <ion-title> Ahorros </ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Tab 1</ion-title>
-    </ion-toolbar>
-  </ion-header>
+<ion-content>
+  <div class="wrap-content">
+    <ion-header collapse="condense">
+      <ion-toolbar>
+        <ion-title size="large">Ahorros</ion-title>
+      </ion-toolbar>
+    </ion-header>
+    <ion-button (click)="mostrarFormulario = !mostrarFormulario">
+      {{ mostrarFormulario ? 'Cancelar' : 'Agregar' }}
+    </ion-button>
 
-  <app-explore-container name="Tab 1 page"></app-explore-container>
+    <app-form
+      *ngIf="mostrarFormulario"
+      [fields]="formFields"
+      (submitForm)="agregarCategoria($event)"
+      (cancelar)="mostrarFormulario = false"
+    >
+    </app-form>
+    <div class="categorias-lista">
+      <ul>
+        <li *ngFor="let categoria of categorias">
+          <span class="categoria-tipo" [ngClass]="categoria.tipo"
+            >{{ categoria.tipo | titlecase }}</span
+          >
+          <span class="categoria-nombre">{{ categoria.name }}</span>
+          <span class="categoria-cantidad"
+            >{{ categoria.quantity | currency:'USD' }}</span
+          >
+        </li>
+      </ul>
+    </div>
+    <h2 class="chart-title">Resumen General</h2>
+    <app-bar-chart [categorias]="categorias" chartType="bar"></app-bar-chart>
+    <h2 class="chart-title">Ingresos</h2>
+    <app-bar-chart [categorias]="ingresos" chartType="doughnut">
+    </app-bar-chart>
+    <h2 class="chart-title">Gastos</h2>
+    <app-bar-chart [categorias]="gastos" chartType="doughnut"> </app-bar-chart>
+  </div>
 </ion-content>

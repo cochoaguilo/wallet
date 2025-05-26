@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>
-      Tab 3
+      Deudas
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -9,9 +9,28 @@
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">Tab 3</ion-title>
+      <ion-title size="large">Deudas</ion-title>
     </ion-toolbar>
   </ion-header>
+<ion-button expand="block" color="primary" (click)="mostrarFormulario = !mostrarFormulario">
+    {{ mostrarFormulario ? 'Cancelar' : 'Agregar deuda' }}
+  </ion-button>
+  <app-form
+    *ngIf="mostrarFormulario"
+    [fields]="formFields"
+    (submitForm)="agregarDeuda($event)"
+    (cancelar)="mostrarFormulario = false">
+  </app-form>
 
-  <app-explore-container name="Tab 3 page"></app-explore-container>
+  <ion-list>
+    <ion-item *ngFor="let deuda of deudas">
+      <ion-label>
+        <strong>{{ deuda.nombre }}</strong><br>
+        {{ deuda.descripcion }}<br>
+        Monto: {{ deuda.monto | currency:'USD' }}<br>
+        Fecha: {{ deuda.fecha | date:'dd/MM/yyyy' }}<br>
+        Interés: {{ deuda.interes }}% ({{ deuda.tipoInteres | titlecase }})
+      </ion-label>
+    </ion-item>
+  </ion-list>
 </ion-content>

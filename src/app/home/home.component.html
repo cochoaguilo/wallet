@@ -1,0 +1,45 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      Resumen General
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Ahorros</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      Total: {{ totalAhorros | currency:'USD' }}
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Inversiones</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      Total: {{ totalInversiones | currency:'USD' }}
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Deudas</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      Total: {{ totalDeudas | currency:'USD' }}
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card color="primary">
+    <ion-card-header>
+      <ion-card-title>Balance Neto</ion-card-title>
+    </ion-card-header>
+    <ion-card-content>
+      {{ (totalAhorros + totalInversiones - totalDeudas) | currency:'USD' }}
+    </ion-card-content>
+  </ion-card>
+</ion-content>
