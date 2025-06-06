@@ -25,8 +25,8 @@
     <div class="categorias-lista">
       <ul>
         <li *ngFor="let categoria of categorias">
-          <span class="categoria-tipo" [ngClass]="categoria.tipo"
-            >{{ categoria.tipo | titlecase }}</span
+          <span class="categoria-tipo" [ngClass]="categoria.type"
+            >{{ categoria.type | titlecase }}</span
           >
           <span class="categoria-nombre">{{ categoria.name }}</span>
           <span class="categoria-cantidad"

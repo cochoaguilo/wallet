@@ -28,7 +28,7 @@ export class BarChartComponent implements OnInit, OnChanges {
   createChart(){
   let backgroundColors: string[] = [];
   if (this.chartType === 'bar') {
-    backgroundColors = this.categorias.map(c => c.tipo === 'ingreso' ? '#2dd36f' : '#eb445a');
+    backgroundColors = this.categorias.map(c => c.type === 'ingreso' ? '#2dd36f' : '#eb445a');
   } else {
     // Colores pastel para doughnut
     backgroundColors = [

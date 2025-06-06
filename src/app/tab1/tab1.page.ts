@@ -1,25 +1,23 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Savings } from 'src/interfaces/savings';
+import { AhorrosService } from '../services/ahorros.service';
 
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
 })
-export class Tab1Page {
-  constructor() {}
+export class Tab1Page implements OnInit {
+  constructor(
+    public ahorrosService: AhorrosService
+  ) {}
 
-  public categorias: Savings[] = [
-    { id: 0, tipo:'gasto', name: 'Alimentación', quantity: 250 },
-    { id: 1, tipo: 'gasto', name: 'Transporte', quantity: 100 },
-    { id: 2, tipo: 'gasto',name: 'Entretenimiento', quantity: 80 },
-    { id: 3, tipo: 'ingreso', name: 'Sueldo', quantity: 1200 }
-  ];
+  public categorias: Savings[] = [];
 
   mostrarFormulario = false;
 
   formFields = [
-  { name: 'tipo', label: 'Tipo', type: 'select', required: true, options: [
+  { name: 'type', label: 'Tipo', type: 'select', required: true, options: [
     { label: 'Gasto', value: 'gasto' },
     { label: 'Ingreso', value: 'ingreso' }
   ]},
@@ -27,21 +25,27 @@ export class Tab1Page {
   { name: 'quantity', label: 'Cantidad', type: 'number', required: true }
 ];
 
+ngOnInit(): void {
+  this.ahorrosService.getAhorros().subscribe((data: Savings[]) => {
+    this.categorias = data;
+  });
+}
+
   agregarCategoria(data: Savings) {
     this.categorias.push({
+    ...data,
     id: this.categorias.length,
-    tipo: data.tipo,
-    name: data.name,
-    quantity: Number(data.quantity)
   });
+  this.ahorrosService.agregarAhorro(data)
+  .subscribe();
   this.mostrarFormulario = false;
   }
 
   get ingresos() {
-    return this.categorias.filter(c => c.tipo === 'ingreso');
+    return this.categorias.filter(c => c.type === 'ingreso');
   }
   get gastos() {
-    return this.categorias.filter(c => c.tipo === 'gasto');
+    return this.categorias.filter(c => c.type === 'gasto');
   }
   get totalGastos() {
     return this.gastos.reduce((total, categoria) => total + categoria.quantity, 0);

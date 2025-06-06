@@ -70,7 +70,7 @@ getCriptoOptions() {
     .sort((a, b) => b.value - a.value);
 }
 
-getAccionOptions() {
+/* getAccionOptions() {
   return this.acciones
     .map(a => ({
       symbol: a.symbol,
@@ -78,10 +78,12 @@ getAccionOptions() {
       value: (this.holdingsAcciones[a.symbol] || 0) * a.price
     }))
     .sort((a, b) => b.value - a.value);
-}
+} */
+
 
   ngOnInit() {
-    this.inversionesService.getInversiones().subscribe({
+    const symbols = ["AAPL","GOOGL","MSFT","AMZN"]
+    this.inversionesService.getAllTypeInvestment(symbols).subscribe({
       next: (data) => {
         this.criptos = data.criptos as any[];
         this.acciones = data.acciones as any[];
