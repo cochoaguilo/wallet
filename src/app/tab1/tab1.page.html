@@ -18,13 +18,13 @@
     <app-form
       *ngIf="mostrarFormulario"
       [fields]="formFields"
-      (submitForm)="agregarCategoria($event)"
+      (submitForm)="agregarModificarCategoria($event)"
       (cancelar)="mostrarFormulario = false"
     >
     </app-form>
     <div class="categorias-lista">
       <ul>
-        <li *ngFor="let categoria of categorias">
+        <li *ngFor="let categoria of categorias; let i = index">
           <span class="categoria-tipo" [ngClass]="categoria.type"
             >{{ categoria.type | titlecase }}</span
           >
@@ -32,6 +32,14 @@
           <span class="categoria-cantidad"
             >{{ categoria.quantity | currency:'USD' }}</span
           >
+          <div class="d-flex">
+            <ion-button fill="clear" size="small" color="primary" (click)="editarCategoria(categoria, i)">
+              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" color="danger" (click)="eliminarCategoria(categoria.id)">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
+          </div>
         </li>
       </ul>
     </div>
@@ -44,3 +52,13 @@
     <app-bar-chart [categorias]="gastos" chartType="doughnut"> </app-bar-chart>
   </div>
 </ion-content>
+<ng-template #confirmarEliminar let-categoria="categoria">
+  <p>¿Estás seguro que deseas eliminar la categoría <strong>{{ categoria?.name }}</strong>?</p>
+</ng-template>
+<app-dynamic-modal
+  [show]="mostrarModalEliminar"
+  [title]="'Confirmar eliminación'"
+  [template]="confirmarEliminar"
+  (aceptar)="confirmarEliminarCategoria()"
+  (cerrar)="mostrarModalEliminar = false">
+</app-dynamic-modal>

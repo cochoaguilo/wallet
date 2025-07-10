@@ -9,7 +9,7 @@ export class DeudasService {
   private deudasSubject = new BehaviorSubject<any[]>([]);
   deudas$ = this.deudasSubject.asObservable();
 
-  private apiUrl = 'https://tuservidor.com/api/deudas';
+  private apiUrl = 'http://localhost:3000/deudas';
 
   constructor(private http: HttpClient) {}
 

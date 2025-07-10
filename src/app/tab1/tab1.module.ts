@@ -8,6 +8,7 @@ import { ExploreContainerComponentModule } from '../explore-container/explore-co
 import { Tab1PageRoutingModule } from './tab1-routing.module';
 import { BarChartComponent } from '../components/bar-chart/bar-chart.component';
 import { FormComponent } from '../components/form/form.component';
+import { DynamicModalComponent } from '../components/dynamic-modal/dynamic-modal.component';
 
 @NgModule({
   imports: [
@@ -17,7 +18,8 @@ import { FormComponent } from '../components/form/form.component';
     ExploreContainerComponentModule,
     Tab1PageRoutingModule,
     BarChartComponent,
-    FormComponent
+    FormComponent,
+    DynamicModalComponent
   ],
   declarations: [Tab1Page]
 })

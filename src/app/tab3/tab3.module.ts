@@ -7,6 +7,7 @@ import { ExploreContainerComponentModule } from '../explore-container/explore-co
 
 import { Tab3PageRoutingModule } from './tab3-routing.module';
 import { FormComponent } from '../components/form/form.component';
+import { DynamicModalComponent } from '../components/dynamic-modal/dynamic-modal.component';
 
 @NgModule({
   imports: [
@@ -15,7 +16,8 @@ import { FormComponent } from '../components/form/form.component';
     FormsModule,
     ExploreContainerComponentModule,
     Tab3PageRoutingModule,
-    FormComponent
+    FormComponent,
+    DynamicModalComponent
   ],
   declarations: [Tab3Page]
 })

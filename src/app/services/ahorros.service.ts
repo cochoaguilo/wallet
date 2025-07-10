@@ -18,8 +18,8 @@ export class AhorrosService {
     return this.http.post<Savings>(this.baseUrl, ahorro);
   }
 
-  public actualizarAhorro(id: number, data: Savings): Observable<Savings> {
-    return this.http.put<Savings>(`${this.baseUrl}/${id}`, data);
+  public actualizarAhorro(data: Savings, id:number | null): Observable<Savings> {
+    return this.http.patch<Savings>(`${this.baseUrl}/${id}`, data);
   }
 
   public eliminarAhorro(id: number): Observable<any> {

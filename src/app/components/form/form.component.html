@@ -7,7 +7,7 @@
           <ion-select-option *ngFor="let opt of field.options" [value]="opt.value">{{ opt.label }}</ion-select-option>
         </ion-select>
       </ion-item>
-      <ion-item *ngIf="field.type === 'text' || field.type === 'number' || field.type === 'date'">
+      <ion-item *ngIf="field.type !== 'select'">
         <ion-label position="floating">{{ field.label }}</ion-label>
         <ion-input *ngIf="field.type !== 'date'" [type]="field.type" [formControlName]="field.name"></ion-input>
         <ion-datetime *ngIf="field.type === 'date'" [formControlName]="field.name"></ion-datetime>

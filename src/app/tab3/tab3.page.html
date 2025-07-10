@@ -23,14 +23,33 @@
   </app-form>
 
   <ion-list>
-    <ion-item *ngFor="let deuda of deudas">
+    <ion-item *ngFor="let deuda of deudas; let i = index">
       <ion-label>
-        <strong>{{ deuda.nombre }}</strong><br>
-        {{ deuda.descripcion }}<br>
-        Monto: {{ deuda.monto | currency:'USD' }}<br>
-        Fecha: {{ deuda.fecha | date:'dd/MM/yyyy' }}<br>
-        Interés: {{ deuda.interes }}% ({{ deuda.tipoInteres | titlecase }})
+        <strong>{{ deuda.name }}</strong><br>
+        {{ deuda.description }}<br>
+        Monto: {{ deuda.amount | currency:'USD' }}<br>
+        <!-- Fecha: {{ deuda.fecha | date:'dd/MM/yyyy' }}<br>
+        Interés: {{ deuda.interes }}% ({{ deuda.tipoInteres | titlecase }}) -->
       </ion-label>
+      <div class="d-flex">
+            <ion-button fill="clear" size="small" color="primary" (click)="editarDeuda(deuda, i)">
+              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+            </ion-button>
+            <ion-button fill="clear" size="small" color="danger" (click)="eliminarDeuda(deuda.id)">
+              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+            </ion-button>
+          </div>
     </ion-item>
   </ion-list>
 </ion-content>
+<ng-template #confirmarTemplate let-deuda="deuda">
+  <p>¿Estás seguro que deseas eliminar la deuda <strong>{{ deuda?.nombre }}</strong>?</p>
+</ng-template>
+
+<app-dynamic-modal
+  [show]="mostrarModalEliminar"
+  [title]="'Confirmar eliminación'"
+  [template]="confirmarTemplate"
+  (aceptar)="confirmarEliminarDeuda()"
+  (cerrar)="mostrarModalEliminar = false">
+</app-dynamic-modal>
