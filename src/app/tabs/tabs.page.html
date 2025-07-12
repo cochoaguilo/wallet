@@ -1,10 +1,18 @@
+<div class="ion-page" id="main-content">
 <ion-header>
   <ion-toolbar>
     <ion-title>Mi Wallet</ion-title>
-    <ion-buttons slot="end">
+    <ion-buttons slot="start">
       <ion-button [routerLink]="['/tabs/home']">
         <ion-icon name="home"></ion-icon>
       </ion-button>
+    </ion-buttons>
+    <ion-buttons slot="end">
+      
+      <ion-button (click)="menuController.open('main-content')">
+        <ion-icon name="person-circle-outline"></ion-icon>
+      </ion-button>
+      
     </ion-buttons>
   </ion-toolbar>
 </ion-header>
@@ -29,3 +37,28 @@
   </ion-tab-bar>
 
 </ion-tabs>
+</div>
+<ion-menu side="end" menuId="main-content" contentId="main-content">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>Mi Cuenta</ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content class="ion-padding">
+    <div class="d-flex flex-column justify-content-between h-100">
+
+      <ion-list>
+        <ion-item>
+          <ion-label>Usuario: {{user?.name}}</ion-label>
+        </ion-item>
+        <ion-item>
+          <ion-label>Mail: {{user?.mail}}</ion-label>
+        </ion-item>
+        
+      </ion-list>
+      <ion-buttons slot="end">
+        <ion-button (click)="closeSession()">Cerrar sesión</ion-button>
+      </ion-buttons>
+    </div>
+  </ion-content>
+</ion-menu>

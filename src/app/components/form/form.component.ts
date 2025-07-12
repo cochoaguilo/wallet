@@ -19,6 +19,7 @@ import { Savings } from 'src/interfaces/savings';
 export class FormComponent implements OnInit {
 
   @Input() fields: any[] = [];
+  @Input() errors!: string[];
   @Output() submitForm = new EventEmitter<any>()
   @Output() cancelar = new EventEmitter<void>();
 

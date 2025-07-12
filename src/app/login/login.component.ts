@@ -3,18 +3,20 @@ import { IonicModule } from '@ionic/angular';
 import { FormComponent } from '../components/form/form.component';
 import { AuthService } from '../services/auth.service';
 import { User } from 'src/interfaces/users';
-import { Subscription } from 'rxjs';
+import { catchError, Subscription, tap } from 'rxjs';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   standalone: true,
-  imports: [IonicModule, FormComponent]
+  imports: [CommonModule, IonicModule, FormComponent]
 })
 export class LoginComponent implements OnDestroy{
-
+  isLoading = false;
+  errors: string[] = []
   constructor(
     private authService: AuthService,
     private router: Router
@@ -22,20 +24,42 @@ export class LoginComponent implements OnDestroy{
 
   private subscriptions: Subscription[] = [];
   loginFields = [
-    { name: 'email', label: 'Email', type: 'text', required: true },
+    { name: 'mail', label: 'Email', type: 'text', required: true },
     { name: 'password', label: 'Contraseña', type: 'password', required: true }
   ];
 
   onLogin(data: User) {
-    this.subscriptions.push(
-      this.authService.login(data)
-      .subscribe(data => {
-        if (data) {
-          sessionStorage.setItem("TOKEN", data.access_token);
-          this.router.navigate(["tabs", "home"]);
-        }
+    
+  if (!data.mail || !data.password) {
+    alert('Por favor, ingresa tu email y contraseña.');
+    return;
+  }
+
+  this.isLoading = true;
+  const sub = this.authService.login(data)
+    .pipe(
+      catchError((err) => {
+        this.isLoading = false;
+        this.errors.push(err?.error.message || 'Error de autenticación')
+        return [];
       })
     )
+    .subscribe(response => {
+      this.isLoading = false;
+      if (response && response.access_token) {
+        this.errors = [];
+        const expiresIn = response.expires_in || 200;
+        const expTimestamp = Date.now() + expiresIn * 1000;
+        sessionStorage.setItem("TOKEN_EXP", expTimestamp.toString());
+        sessionStorage.setItem("USER", JSON.stringify(response.user));
+        sessionStorage.setItem("TOKEN", response.access_token);
+        this.router.navigate(["tabs", "home"]);
+      } else {
+        this.errors.push(response?.message || 'Credenciales incorrectas')
+      }
+    });
+
+  this.subscriptions.push(sub);
     
   }
 
