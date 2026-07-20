@@ -7,7 +7,8 @@ import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
-import {  provideHttpClient } from '@angular/common/http';
+import { HTTP_INTERCEPTORS, provideHttpClient, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
+import { AuthInterceptorService } from './services/auth-interceptor.service';
 
 @NgModule({
   declarations: [AppComponent],
@@ -18,8 +19,9 @@ import {  provideHttpClient } from '@angular/common/http';
   ],
   providers: [
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy }, 
+    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptorService, multi: true },
     provideCharts(withDefaultRegisterables()),
-    provideHttpClient()
+    provideHttpClient(withInterceptorsFromDi()),
   ],
   bootstrap: [AppComponent],
 })

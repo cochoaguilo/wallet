@@ -3,4 +3,12 @@ export interface User {
     mail: string;
     password: string;
     confirmPassword: string;
+    
+}
+
+export interface Login {
+    access_token:string;
+    user: User;
+    expires_in: number;
+    message: string;
 }

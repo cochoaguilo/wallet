@@ -1,21 +1,30 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { Savings } from 'src/interfaces/savings';
 import { AhorrosService } from '../services/ahorros.service';
 import { FormComponent } from '../components/form/form.component';
 import { Subscription } from 'rxjs';
+import { Forms } from 'src/interfaces/forms';
+import { HttpResponse } from 'src/interfaces/http-response';
 
 @Component({
   selector: 'app-tab1',
   templateUrl: 'tab1.page.html',
   styleUrls: ['tab1.page.scss'],
+  // eslint-disable-next-line @angular-eslint/prefer-standalone
+  standalone: false,
 })
 export class Tab1Page implements OnInit, OnDestroy {
   @ViewChild(FormComponent) formComponent!: FormComponent;
-  constructor(
-    public ahorrosService: AhorrosService
-  ) {}
+  private ahorrosService = inject(AhorrosService);
+  private userId:number;
 
-  public categorias: Savings[] = [];
+  constructor(
+  ) {
+    const user = JSON.parse(sessionStorage.getItem("USER") || "{}");
+    this.userId = user.id;
+  }
+
+  public categorias = signal<Savings[]>([]);
 
   mostrarFormulario = false;
   editarIndex: number | null = null;
@@ -24,43 +33,47 @@ export class Tab1Page implements OnInit, OnDestroy {
   mostrarModalEliminar = false;
   categoriaAEliminar: any = null;
 
-  formFields = [
+  formFields: Forms[] = [
   { name: 'type', label: 'Tipo', type: 'select', required: true, options: [
     { label: 'Gasto', value: 'gasto' },
     { label: 'Ingreso', value: 'ingreso' }
   ]},
   { name: 'name', label: 'Nombre', type: 'text', required: true },
+  { name: 'description', label: 'Descripción', type: 'text', required: false },
+  { name: 'date', label: 'Fecha', type: 'date', required: false },
   { name: 'quantity', label: 'Cantidad', type: 'number', required: true }
 ];
 
 ngOnInit(): void {
   this.subscriptions.push(
-    this.ahorrosService.getAhorros().subscribe((data: Savings[]) => {
-      this.categorias = data;
+    this.ahorrosService.getAhorros(this.userId).subscribe((data: HttpResponse<Savings[]>) => {
+      this.categorias.set(data.data ?? []);
     })
-  )
+  );
 }
 
   agregarModificarCategoria(data: Savings) {
     console.log(data,this.editarId);
     
-    if (this.editarIndex) {
+    if (this.editarIndex !== null) {
       this.subscriptions.push(
         this.ahorrosService.actualizarAhorro(data, this.editarId)
       .subscribe()
       );
-      this.categorias.splice(this.editarIndex,1,data);
-      this.editarIndex = null
-    } else {
-      this.categorias.push({
-      ...data,
-      id: this.categorias.length,
+      this.categorias.update((actual) => {
+        const copia = [...actual];
+        if (this.editarIndex !== null) {
+          copia[this.editarIndex] = data;
+        }
+        return copia;
       });
+      this.editarIndex = null;
+    } else {
+      this.categorias.update((actual) => [...actual, { ...data, id: this.categorias().length }]);
       this.subscriptions.push(
         this.ahorrosService.agregarAhorro(data)
       .subscribe()
-      )
-      
+      );
     }
     
     
@@ -68,6 +81,8 @@ ngOnInit(): void {
   }
 
   editarCategoria(categoria: Savings, index: number) {
+      console.log("Hola");
+
   this.editarIndex = index;
   this.mostrarFormulario = true;
   this.editarId = categoria.id;
@@ -86,10 +101,10 @@ ngOnInit(): void {
 }
 
   get ingresos() {
-    return this.categorias.filter(c => c.type === 'ingreso');
+    return this.categorias().filter(c => c.type === 'ingreso');
   }
   get gastos() {
-    return this.categorias.filter(c => c.type === 'gasto');
+    return this.categorias().filter(c => c.type === 'gasto');
   }
   get totalGastos() {
     return this.gastos.reduce((total, categoria) => total + categoria.quantity, 0);
@@ -108,14 +123,14 @@ ngOnInit(): void {
   }
   eliminarCategoria(id: number) {
     this.mostrarModalEliminar = true;
-    this.categoriaAEliminar = this.categorias.find(c => c.id === id);
+    this.categoriaAEliminar = this.categorias().find((c: Savings) => c.id === id);
   }
 
   confirmarEliminarCategoria() {
   if (this.categoriaAEliminar) {
-    const index = this.categorias.findIndex(c => c.id === this.categoriaAEliminar.id);
+    const index = this.categorias().findIndex(c => c.id === this.categoriaAEliminar.id);
     if (index > -1) {
-      this.categorias.splice(index, 1);
+      this.categorias.update((actual) => actual.filter((_, i) => i !== index));
       this.subscriptions.push(
       this.ahorrosService.eliminarAhorro(this.categoriaAEliminar.id)
       .subscribe())

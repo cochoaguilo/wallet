@@ -15,36 +15,31 @@
       {{ mostrarFormulario ? 'Cancelar' : 'Agregar' }}
     </ion-button>
 
-    <app-form
-      *ngIf="mostrarFormulario"
-      [fields]="formFields"
-      (submitForm)="agregarModificarCategoria($event)"
-      (cancelar)="mostrarFormulario = false"
-    >
-    </app-form>
     <div class="categorias-lista">
       <ul>
-        <li *ngFor="let categoria of categorias; let i = index">
-          <span class="categoria-tipo" [ngClass]="categoria.type"
-            >{{ categoria.type | titlecase }}</span
-          >
-          <span class="categoria-nombre">{{ categoria.name }}</span>
-          <span class="categoria-cantidad"
-            >{{ categoria.quantity | currency:'USD' }}</span
-          >
-          <div class="d-flex">
-            <ion-button fill="clear" size="small" color="primary" (click)="editarCategoria(categoria, i)">
-              <ion-icon slot="icon-only" name="create-outline"></ion-icon>
-            </ion-button>
-            <ion-button fill="clear" size="small" color="danger" (click)="eliminarCategoria(categoria.id)">
-              <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
-            </ion-button>
-          </div>
-        </li>
+        @for (categoria of categorias(); let i = $index; track categoria.id) {
+          <li>
+            <span class="categoria-tipo" [ngClass]="categoria.type"
+              >{{ categoria.type | titlecase }}</span
+            >
+            <span class="categoria-nombre">{{ categoria.name }}</span>
+            <span class="categoria-cantidad"
+              >{{ categoria.quantity | currency:'USD' }}</span
+            >
+            <div class="d-flex">
+              <ion-button fill="clear" size="small" color="primary" (click)="editarCategoria(categoria, i)">
+                <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+              </ion-button>
+              <ion-button fill="clear" size="small" color="danger" (click)="eliminarCategoria(categoria.id)">
+                <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+              </ion-button>
+            </div>
+          </li>
+        }
       </ul>
     </div>
     <h2 class="chart-title">Resumen General</h2>
-    <app-bar-chart [categorias]="categorias" chartType="bar"></app-bar-chart>
+    <app-bar-chart [categorias]="categorias()" chartType="bar"></app-bar-chart>
     <h2 class="chart-title">Ingresos</h2>
     <app-bar-chart [categorias]="ingresos" chartType="doughnut">
     </app-bar-chart>
@@ -52,9 +47,26 @@
     <app-bar-chart [categorias]="gastos" chartType="doughnut"> </app-bar-chart>
   </div>
 </ion-content>
+<ng-template #formTemplate>
+  <app-form
+    [fields]="formFields"
+    (submitForm)="agregarModificarCategoria($event)"
+    (cancelar)="mostrarFormulario = false"
+  >
+  </app-form>
+</ng-template>
+
 <ng-template #confirmarEliminar let-categoria="categoria">
   <p>¿Estás seguro que deseas eliminar la categoría <strong>{{ categoria?.name }}</strong>?</p>
 </ng-template>
+
+<app-dynamic-modal
+  [show]="mostrarFormulario"
+  [title]="'Agregar o editar ahorro'"
+  [template]="formTemplate"
+  (cerrar)="mostrarFormulario = false">
+</app-dynamic-modal>
+
 <app-dynamic-modal
   [show]="mostrarModalEliminar"
   [title]="'Confirmar eliminación'"

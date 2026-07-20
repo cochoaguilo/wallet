@@ -1,56 +1,60 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, Signal, signal } from '@angular/core';
 import { DeudasService } from '../services/deudas.service';
 import { Subscription } from 'rxjs';
+import { Forms } from 'src/interfaces/forms';
+import { Deudas } from 'src/interfaces/deudas';
+import { HttpResponse } from 'src/interfaces/http-response';
 
 @Component({
   selector: 'app-tab3',
   templateUrl: 'tab3.page.html',
-  styleUrls: ['tab3.page.scss']
+  styleUrls: ['tab3.page.scss'],
+  // eslint-disable-next-line @angular-eslint/prefer-standalone
+  standalone: false,
 })
-export class Tab3Page implements OnInit {
+export class Tab3Page implements OnInit, OnDestroy {
 
   mostrarFormulario = false;
   mostrarModalEliminar = false;
   deudaAEliminar: any = null;
+  private userId:number;
+  public deudas= signal<Deudas[]>([]);
+  private deudasService = inject(DeudasService);
 
-  formFields = [
+  formFields: Forms[] = [
     { name: 'name', label: 'Nombre', type: 'text', required: true },
     { name: 'description', label: 'Descripción', type: 'text', required: false },
     { name: 'amount', label: 'Monto', type: 'number', required: true },
-    /* { name: 'fecha', label: 'Fecha', type: 'date', required: false },
-    { name: 'interes', label: 'Porcentaje de interés', type: 'number', required: false },
-    {
-      name: 'tipoInteres',
-      label: 'Tipo de interés',
-      type: 'select',
-      required: false,
-      options: [
-        { label: 'Anual', value: 'anual' },
-        { label: 'Mensual', value: 'mensual' }
-      ]
-    } */
   ];
   editarIndex: number | undefined;
   editarId: any;
   formComponent: any;
   subscriptions: Subscription[] = [];
 
-  constructor(private deudasService: DeudasService) {
-    this.deudasService.deudas$.subscribe(deudas => this.deudas = deudas);
+  constructor() {
+    const user = JSON.parse(sessionStorage.getItem("USER") || "{}");
+    this.userId = user.id;
   }
 
   ngOnInit(): void {
+    
     this.subscriptions.push(
-        this.deudasService.getDeudas().subscribe((data: any[]) => {
-          this.deudas = data;
+        this.deudasService.getDeudas(this.userId).subscribe((data: HttpResponse< Deudas[]>) => {
+          if (data.success) {
+            this.deudas.set(data.data as Deudas[]);
+          }
         })
       )
   }
 
-  deudas: any[] = [];
 
   agregarDeuda(deuda: any) {
-    this.deudasService.agregarDeuda(deuda).subscribe();
+    this.subscriptions.push(
+    this.deudasService.agregarDeuda(deuda, this.userId).subscribe((data: HttpResponse<Deudas>) => {
+      const nuevaDeuda = data.data ?? deuda;
+      this.deudas.update(deudasActuales => [...deudasActuales, nuevaDeuda]);
+    })
+    )
     this.mostrarFormulario = false;
   }
   editarDeuda(deuda: any, index: number) {
@@ -59,7 +63,7 @@ export class Tab3Page implements OnInit {
     this.editarId = deuda.id;
     
     // Rellena el formulario con los datos de la categoría seleccionada
-    setTimeout(() => {
+    /* setTimeout(() => {
         if (this.formComponent && this.formComponent.categoriaForm) {
           this.formFields.forEach(field => {
             if (this.formComponent.categoriaForm.get(field.name)) {
@@ -68,7 +72,7 @@ export class Tab3Page implements OnInit {
             }
           });
         }
-      });
+      }); */
   }
   eliminarDeuda(deuda: any) {
   this.deudaAEliminar = deuda;
@@ -76,14 +80,21 @@ export class Tab3Page implements OnInit {
   }
   confirmarEliminarDeuda() {
   if (this.deudaAEliminar) {
-    const index = this.deudas.findIndex(d => d === this.deudaAEliminar);
+    const index = this.deudas().findIndex(d => d === this.deudaAEliminar);
     if (index > -1) {
-      this.deudas.splice(index, 1);
-      this.deudasService.eliminarDeuda(this.deudaAEliminar.id).subscribe();
+      this.deudas.update((actual) => actual.filter((_, i) => i !== index));
+      this.subscriptions.push(
+        this.deudasService.eliminarDeuda(this.deudaAEliminar.id).subscribe()
+      );
+      
     }
   }
   this.mostrarModalEliminar = false;
   this.deudaAEliminar = null;
+}
+
+ngOnDestroy(): void {
+  this.subscriptions.forEach(sub => sub.unsubscribe())
 }
 
 }

@@ -1,7 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Savings } from 'src/interfaces/savings';
+import { Savings } from '../../interfaces/savings.js';
+import { HttpResponse } from 'src/interfaces/http-response';
 
 @Injectable({
   providedIn: 'root'
@@ -10,23 +11,27 @@ export class AhorrosService {
   private http = inject(HttpClient);
   private baseUrl = 'http://localhost:3000/ahorros';
 
-  public getAhorros(): Observable<Savings[]> {
-    return this.http.get<Savings[]>(this.baseUrl);
+  public getAhorros(userId: number): Observable<HttpResponse<Savings[]>> {
+    return this.http.get<HttpResponse<Savings[]>>(this.baseUrl + '?userId=' + userId);
   }
 
-  public agregarAhorro(ahorro:Savings): Observable<Savings> {
-    return this.http.post<Savings>(this.baseUrl, ahorro);
+  public getAhorrosTotales(userId: number): Observable<HttpResponse<number>> {
+    return this.http.get<HttpResponse<number>>(`${this.baseUrl}/totales?userId=${userId}`);
   }
 
-  public actualizarAhorro(data: Savings, id:number | null): Observable<Savings> {
-    return this.http.patch<Savings>(`${this.baseUrl}/${id}`, data);
+  public agregarAhorro(ahorro:Savings): Observable<HttpResponse<Savings>> {
+    return this.http.post<HttpResponse<Savings>>(this.baseUrl, ahorro);
   }
 
-  public eliminarAhorro(id: number): Observable<any> {
-    return this.http.delete(`${this.baseUrl}/${id}`);
+  public actualizarAhorro(data: Savings, id:number | null): Observable<HttpResponse<Savings>> {
+    return this.http.patch<HttpResponse<Savings>>(`${this.baseUrl}/${id}`, data);
   }
 
-  public getAhorroPorId(id: number): Observable<Savings> {
-    return this.http.get<Savings>(`${this.baseUrl}/${id}`);
+  public eliminarAhorro(id: number): Observable<HttpResponse<void>> {
+    return this.http.delete<HttpResponse<void>>(`${this.baseUrl}/${id}`);
+  }
+
+  public getAhorroPorId(id: number): Observable<HttpResponse<Savings>> {
+    return this.http.get<HttpResponse<Savings>>(`${this.baseUrl}/${id}`);
   }
 }

@@ -6,6 +6,7 @@ import { User } from 'src/interfaces/users';
 import { catchError, Subscription, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Forms } from 'src/interfaces/forms';
 
 @Component({
   selector: 'app-login',
@@ -23,13 +24,13 @@ export class LoginComponent implements OnDestroy{
   ) {}
 
   private subscriptions: Subscription[] = [];
-  loginFields = [
+  loginFields: Forms[] = [
     { name: 'mail', label: 'Email', type: 'text', required: true },
     { name: 'password', label: 'Contraseña', type: 'password', required: true }
   ];
 
   onLogin(data: User) {
-    
+    this.errors = [];
   if (!data.mail || !data.password) {
     alert('Por favor, ingresa tu email y contraseña.');
     return;
@@ -40,22 +41,22 @@ export class LoginComponent implements OnDestroy{
     .pipe(
       catchError((err) => {
         this.isLoading = false;
-        this.errors.push(err?.error.message || 'Error de autenticación')
+        this.errors = [err?.error.message || 'Error de autenticación']
         return [];
       })
     )
     .subscribe(response => {
       this.isLoading = false;
-      if (response && response.access_token) {
+      if (response && response.data?.access_token) {
         this.errors = [];
-        const expiresIn = response.expires_in || 200;
+        const expiresIn = response.data.expires_in || 200;
         const expTimestamp = Date.now() + expiresIn * 1000;
         sessionStorage.setItem("TOKEN_EXP", expTimestamp.toString());
-        sessionStorage.setItem("USER", JSON.stringify(response.user));
-        sessionStorage.setItem("TOKEN", response.access_token);
+        sessionStorage.setItem("USER", JSON.stringify(response.data.user));
+        sessionStorage.setItem("TOKEN", response.data.access_token);
         this.router.navigate(["tabs", "home"]);
       } else {
-        this.errors.push(response?.message || 'Credenciales incorrectas')
+        this.errors = [response?.message || 'Credenciales incorrectas']
       }
     });
 

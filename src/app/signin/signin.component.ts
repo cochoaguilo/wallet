@@ -1,10 +1,11 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { FormComponent } from '../components/form/form.component';
 import { AuthService } from '../services/auth.service';
 import { User } from 'src/interfaces/users';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
+import { Forms } from 'src/interfaces/forms';
 
 @Component({
   selector: 'app-signin',
@@ -16,12 +17,11 @@ import { Router } from '@angular/router';
 export class SigninComponent implements OnDestroy{
 
   private subscriptions: Subscription[] = [];
+  authService = inject(AuthService);
+  router = inject(Router);
 
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
-  registerFields = [
+  constructor() {}
+  registerFields: Forms[] = [
     { name: 'name', label: 'Nombre', type: 'text', required: true},
     { name: 'mail', label: 'Email', type: 'text', required: true },
     { name: 'password', label: 'Contraseña', type: 'password', required: true },
@@ -36,8 +36,8 @@ export class SigninComponent implements OnDestroy{
     this.subscriptions.push(
       this.authService.register(data)
       .subscribe(data => {
-        if(data) {
-          alert(`Usuario ${data.name} registrado correctamente`)
+        if(data.success) {
+          alert(`Usuario ${data.data?.name} registrado correctamente`)
           setTimeout(() => {
             this.router.navigate(["log-in"]);
           }, 1000);

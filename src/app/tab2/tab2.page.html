@@ -7,16 +7,24 @@
 </ion-header>
 
 <ion-content>
-  <ion-spinner *ngIf="loading" name="crescent"></ion-spinner>
-  <ion-button expand="block" color="primary" (click)="mostrarFormulario = !mostrarFormulario">
-    {{ mostrarFormulario ? 'Cancelar' : 'Agregar inversión' }}
-  </ion-button>
-  <app-form *ngIf="mostrarFormulario" [fields]="formFields" (submitForm)="agregarInversion($event)"
-    (cancelar)="mostrarFormulario = false">
-  </app-form>
-
-  <div *ngIf="!loading">
-    <h2>Criptomonedas</h2>
+  @if(loading()) {
+    <ion-spinner name="bubbles"></ion-spinner>
+  }
+  
+  @if(!loading()) {
+    <div>
+      <div class="d-flex justify-content-around align-items-center">
+        <h2>Criptomonedas</h2>
+        <ion-button id="click-trigger">
+          <ion-icon name="help-circle-outline"></ion-icon>
+        </ion-button>
+        <ion-popover trigger="click-trigger" triggerAction="click">
+          <ng-template>
+            <ion-content class="ion-padding">Agregue la criptomoneda segun la tenencia que tenga. 
+              Le mostraremos el total según el precio del momento</ion-content>
+          </ng-template>
+        </ion-popover>
+      </div>
     <ion-item>
       <ion-label>Ordenar por</ion-label>
       <ion-select [(ngModel)]="criterioCripto">
@@ -29,26 +37,49 @@
         <ion-select-option value="nombre">Nombre</ion-select-option>
       </ion-select>
     </ion-item>
-    <ion-list>
-      <ion-item *ngFor="let cripto of criptos | ordenar:criterioCripto:holdings">
-        <ion-label>
-          <strong>{{ cripto.name }}</strong> ({{ cripto.symbol | uppercase }})<br>
-          Precio: {{ cripto.current_price | currency:'USD' }}
-          Tenencia: {{ holdings[cripto.symbol] || 0 }} {{ cripto.symbol | uppercase }}<br>
-    Valor total: {{
-      (holdings[cripto.symbol] || 0) * cripto.current_price | currency:'USD'
-    }}
-        </ion-label>
-      </ion-item>
+    <ion-list class="inversiones-list">
+        @for (cripto of criptos() | ordenar:criterioCripto:holdings; track $index) {
+          <ion-item >
+            <ion-label class="inversiones-item">
+              <strong>{{ cripto.name }}</strong> ({{ cripto.symbol | uppercase }})<br>
+              Precio: {{ cripto.price | currency:'USD' }}
+              Tenencia: {{ cripto.hold || 0 }} {{ cripto.symbol | uppercase }}<br>
+        Valor total: {{
+          (cripto.hold || 0) * cripto.price | currency:'USD'
+        }}
+            <div class="d-flex">
+                <ion-button fill="clear" size="small" color="primary" (click)="editarCripto(cripto, $index)">
+                  <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="eliminarCripto(cripto.id)">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </ion-label>
+          </ion-item>
+        }
+      
     </ion-list>
     <ion-item color="light">
       <ion-label>
         <strong>Total Criptomonedas:</strong>
-        {{ totalCriptos | currency:'USD' }}
+        {{ totalCriptos() | currency:'USD' }}
       </ion-label>
     </ion-item>
-
-    <h2>Acciones</h2>
+    <div class="d-flex justify-content-around align-items-center">
+      <h2>Instrumentos</h2>
+      <ion-button id="click-acciones">
+          <ion-icon name="help-circle-outline"></ion-icon>
+        </ion-button>
+        <ion-popover trigger="click-acciones" triggerAction="click">
+          <ng-template>
+            <ion-content class="ion-padding">Agregue el instrumento que haya comprado. 
+              Pueden ser bonos, acciones o CEDEARs. 
+              Eliga pesos o dolares y 
+              se lo mostraremos en dolar MEP que es el cambio que utilizan las plataformas</ion-content>
+          </ng-template>
+        </ion-popover>
+    </div>
     <ion-item>
       <ion-label>Ordenar por</ion-label>
       <ion-select [(ngModel)]="criterioAccion">
@@ -61,31 +92,49 @@
         <ion-select-option value="nombre">Nombre</ion-select-option>
       </ion-select>
     </ion-item>
-    <ion-list>
-      <ion-item *ngFor="let accion of acciones | ordenar:criterioAccion:holdingsAcciones">
-        <ion-label>
-          <strong>{{ accion.name || accion.symbol }}</strong> ({{ accion.symbol }})<br>
-          Precio: {{ accion.price | currency:'USD' }}
-          Tenencia: {{ holdingsAcciones[accion.symbol] || 0 }} {{ accion.symbol }}<br>
-      Valor total: {{
-        (holdingsAcciones[accion.symbol] || 0) * accion.price | currency:'USD'
-      }}
-        </ion-label>
-      </ion-item>
+    <ion-list class="inversiones-list">
+        @for (accion of acciones() ; track $index) {
+          <ion-item >
+            <ion-label class="inversiones-item">
+              <strong>{{ accion.name || accion.symbol }}</strong> ({{ accion.symbol }})<br>
+              Precio: {{ accion.price | currency:'USD' }}
+              Tenencia: {{ accion.hold || 0 }} {{ accion.symbol }}<br>
+          Valor total: {{
+            (accion.hold || 0) * accion.price | currency: (accion.moneda || 'USD')
+          }}
+              <div class="d-flex">
+                <ion-button fill="clear" size="small" color="primary" (click)="editarAccion(accion, $index)">
+                  <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" size="small" color="danger" (click)="eliminarAccion(accion.id)">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </ion-label>
+          </ion-item>
+          
+        }
+      
     </ion-list>
     <ion-item color="light">
   <ion-label>
     <strong>Total Acciones:</strong>
-    {{ totalAcciones | currency:'USD' }}
+    {{ totalAcciones() | currency:'USD' }}
   </ion-label>
   </ion-item>
   
   <ion-item color="primary">
     <ion-label>
       <strong>Total General:</strong>
-      {{ totalGeneral | currency:'USD' }}
+      {{ totalGeneral() | currency:'USD' }}
     </ion-label>
   </ion-item>
+  @if (!mostrarFormulario) {
+    <ion-button expand="block" color="primary" (click)="mostrarFormulario = true">
+      Agregar inversión
+    </ion-button>
+  }
+  
 
     <!-- <h2>Bonos</h2>
     <ion-list>
@@ -96,5 +145,21 @@
         </ion-label>
       </ion-item>
     </ion-list> -->
-  </div>
+    </div>
+  }
 </ion-content>
+
+<ng-template #formTemplate>
+  <app-form
+    [fields]="formFields"
+    (submitForm)="agregarInversion($event)"
+    (cancelar)="mostrarFormulario = false">
+  </app-form>
+</ng-template>
+
+<app-dynamic-modal
+  [show]="mostrarFormulario"
+  [title]="'Agregar inversión'"
+  [template]="formTemplate"
+  (cerrar)="mostrarFormulario = false">
+</app-dynamic-modal>

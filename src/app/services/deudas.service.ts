@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { Deudas } from 'src/interfaces/deudas';
+import { HttpResponse } from 'src/interfaces/http-response';
 
 @Injectable({
   providedIn: 'root'
@@ -10,32 +12,33 @@ export class DeudasService {
   deudas$ = this.deudasSubject.asObservable();
 
   private apiUrl = 'http://localhost:3000/deudas';
+  private http = inject(HttpClient);
 
-  constructor(private http: HttpClient) {}
+  constructor() {}
 
-  getDeudas(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl);
+  getDeudas(userId: number): Observable<HttpResponse<Deudas[]>> {
+    return this.http.get<HttpResponse<Deudas[]>>(this.apiUrl + '?userId=' + userId);
   }
 
-  agregarDeuda(deuda: any): Observable<any> {
+  agregarDeuda(deuda: Deudas, userId: number): Observable<HttpResponse<Deudas>> {
     const deudas = [...this.deudasSubject.value, deuda];
     this.deudasSubject.next(deudas);
-    return this.http.post<any>(this.apiUrl, deuda);
+    return this.http.post<HttpResponse<Deudas>>(this.apiUrl + '?userId=' + userId, deuda);
   }
 
-  actualizarDeuda(id: number, data: any): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/${id}`, data);
+  actualizarDeuda(id: number, data: Deudas): Observable<HttpResponse<Deudas>> {
+    return this.http.put<HttpResponse<Deudas>>(`${this.apiUrl}/${id}`, data);
   }
 
-  eliminarDeuda(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  eliminarDeuda(id: number): Observable<HttpResponse<void>> {
+    return this.http.delete<HttpResponse<void>>(`${this.apiUrl}/${id}`);
   }
 
-  getDeudaPorId(id: number): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}`);
+  getDeudaPorId(id: number): Observable<HttpResponse<Deudas>> {
+    return this.http.get<HttpResponse<Deudas>>(`${this.apiUrl}/${id}`);
   }
 
-  getTotalDeudas(): number {
-    return this.deudasSubject.value.reduce((acc, d) => acc + Number(d.monto), 0);
+  getTotalDeudas(userId: number): Observable<HttpResponse<number>> {
+    return this.http.get<HttpResponse<number>>(`${this.apiUrl}/totales?userId=${userId}`);
   }
 }

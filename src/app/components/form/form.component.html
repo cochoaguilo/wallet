@@ -1,18 +1,28 @@
 <ion-card class="formulario-categoria">
   <form [formGroup]="categoriaForm" (ngSubmit)="submit()">
-    <ng-container *ngFor="let field of fields">
-      <ion-item *ngIf="field.type === 'select'">
-        <ion-label position="floating">{{ field.label }}</ion-label>
-        <ion-select [formControlName]="field.name">
-          <ion-select-option *ngFor="let opt of field.options" [value]="opt.value">{{ opt.label }}</ion-select-option>
-        </ion-select>
-      </ion-item>
-      <ion-item *ngIf="field.type !== 'select'">
-        <ion-label position="floating">{{ field.label }}</ion-label>
-        <ion-input *ngIf="field.type !== 'date'" [type]="field.type" [formControlName]="field.name"></ion-input>
-        <ion-datetime *ngIf="field.type === 'date'" [formControlName]="field.name"></ion-datetime>
-      </ion-item>
-    </ng-container>
+    @for (field of fields; track $index) {
+      @if (field.type === 'select') {
+        <ion-item >
+          <ion-label position="floating">{{ field.label }}</ion-label>
+          <ion-select [formControlName]="field.name">
+            @for (opt of field.options; track $index) {
+              <ion-select-option [value]="opt.value">{{ opt.label }}</ion-select-option>
+            }
+          </ion-select>
+        </ion-item>
+      }
+      @else {
+        <ion-item>
+          <ion-label position="floating">{{ field.label }}</ion-label>
+          @if (field.type !== 'date') {
+            <ion-input [type]="field.type" [formControlName]="field.name"></ion-input>
+          } @else {
+            <ion-datetime [formControlName]="field.name"></ion-datetime>
+          }
+          
+        </ion-item>
+      }
+    }
     @for (item of errors; track $index) {
       <span class="text-danger">{{item}}</span>
     }

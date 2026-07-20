@@ -3,7 +3,10 @@
     <ion-title>Iniciar sesión</ion-title>
   </ion-toolbar>
 </ion-header>
-<ion-spinner *ngIf="isLoading" name="crescent"></ion-spinner>
+@if (isLoading) {
+  <ion-spinner name="crescent"></ion-spinner>
+}
+
 <ion-content>
   <app-form
     [fields]="loginFields"

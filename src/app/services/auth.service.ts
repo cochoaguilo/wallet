@@ -1,20 +1,22 @@
 import { HttpClient } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { User } from 'src/interfaces/users';
+import { Login, User } from '../../interfaces/users.js';
+import { HttpResponse } from 'src/interfaces/http-response';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private baseUrl = 'http://localhost:3000/usuarios/';
-  constructor(private http: HttpClient) {}
+  private http = inject(HttpClient);
+  constructor() {}
 
-  register(body: User): Observable<any> {
-    return this.http.post<any>(this.baseUrl + "sign-in",body)
+  register(body: User): Observable<HttpResponse<User>> {
+    return this.http.post<HttpResponse<User>>(this.baseUrl + "sign-in", body)
   }
 
-  login(body: User): Observable<any> {
-    return this.http.post<any>(this.baseUrl + "log-in",body)
+  login(body: User): Observable<HttpResponse<Login>> {
+    return this.http.post<HttpResponse<Login>>(this.baseUrl + "log-in", body)
   }
 }
