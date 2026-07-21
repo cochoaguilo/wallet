@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
 import { HttpResponse } from 'src/interfaces/http-response';
 import { Investments } from 'src/interfaces/investments';
+import { environment } from '../../environments/environment';
+import { Cotizaciones } from 'src/interfaces/cotizaciones';
 
 @Injectable({
   providedIn: 'root'
@@ -11,8 +13,9 @@ export class InversionesService {
   private http = inject(HttpClient);
   constructor() {}
 
-  private criptoUrl = 'http://localhost:3000/cripto';
-  private inversionesUrl = 'http://localhost:3000/inversiones';
+  private criptoUrl = `${environment.apiUrl}/cripto`;
+  private inversionesUrl = `${environment.apiUrl}/inversiones`;
+  private externalsUrl = `${environment.apiUrl}/externals`;
 
   getCripto(userId:number): Observable<HttpResponse<any[]>> {
     return this.http.get<HttpResponse<any[]>>(this.criptoUrl + "?userId=" + userId);
@@ -51,13 +54,17 @@ export class InversionesService {
   }
 
   // Ejemplo: obtener precios de criptomonedas populares
-  getCriptosAPI(symbols: string[]): Observable<any[]> {
-    return this.http.get<any[]>(`https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&symbols=${symbols.join(',')}&order=market_cap_desc&page=1`);
+  getCriptosAPI(symbols: string[]): Observable<HttpResponse<any[]>> {
+    return this.http.get<HttpResponse<any[]>>(this.externalsUrl + '/cripto_currency' + '?symbols=' + symbols.join(','));
   }
 
   // Ejemplo: obtener precios de acciones populares (Financial Modeling Prep)
   getPreciosAccionesAPI(): Observable<any> {
-    return this.http.get(this.inversionesUrl + '/rava');
+    return this.http.get(this.externalsUrl + '/rava');
+  }
+
+  getCotizacionesDolares(): Observable<HttpResponse<Cotizaciones[]>> {
+    return this.http.get<HttpResponse<Cotizaciones[]>>(this.externalsUrl + '/dolar_exchange');
   }
 
   // Obtener todo junto
@@ -69,6 +76,7 @@ export class InversionesService {
   }
 
   getAccionesConPrecio(userId:number): Observable<any[]> {
+    const dolarMEPStored = sessionStorage.getItem('dolarMEP'); 
     return this.getInversion(userId).pipe(
       switchMap((response: HttpResponse<Investments[]>) => {
         if (!response.success) return of([]);
@@ -96,7 +104,7 @@ export class InversionesService {
               const local = misAcciones.find((c: any) => (c.symbol as string).toLowerCase() === precio.simbolo.toLowerCase());
               return {
                 ...local,
-                price: Number(precio.ultimo),
+                price: Number(precio.ultimo) / (dolarMEPStored ? JSON.parse(dolarMEPStored).sell: 1),
                 moneda: precio.moneda,
               };
             });
@@ -111,13 +119,14 @@ export class InversionesService {
       switchMap((response: HttpResponse<Investments[]>) => {
         if (!response.success) return of([]);
         const misCriptos = response.data ?? [];
-        console.log(misCriptos);
         
         const symbols = misCriptos.map((c: any) => c.symbol);
         if (!symbols.length || symbols.length === 0) return of([]);
         return this.getCriptosAPI(symbols).pipe(
-          map((precios: any[]) => {
-            return precios.map((precio: any) => {
+          map((precios: HttpResponse<any[]>) => {
+            if(!precios.success)return [];
+            
+            return precios.data.map((precio: any) => {
               const local = misCriptos.find((c: any) => (c.symbol as string).toLowerCase() === precio.symbol);
               return {
                 ...local,

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, inject, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, inject, input, Input, OnInit, Output } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { Forms } from 'src/interfaces/forms';
@@ -21,6 +21,8 @@ export class FormComponent implements OnInit {
 
   @Input() fields: Forms[] = [];
   @Input() errors!: string[];
+  defaultButton = input(true);
+  submitText = input("Guardar")
   @Output() submitForm = new EventEmitter<any>()
   @Output() cancelar = new EventEmitter<void>();
 

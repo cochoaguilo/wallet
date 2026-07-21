@@ -4,7 +4,7 @@ import { FormComponent } from '../components/form/form.component';
 import { AuthService } from '../services/auth.service';
 import { User } from 'src/interfaces/users';
 import { catchError, Subscription, tap } from 'rxjs';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Forms } from 'src/interfaces/forms';
 
@@ -13,7 +13,7 @@ import { Forms } from 'src/interfaces/forms';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormComponent]
+  imports: [CommonModule, IonicModule, FormComponent, RouterLink]
 })
 export class LoginComponent implements OnDestroy{
   isLoading = false;

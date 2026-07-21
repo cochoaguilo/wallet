@@ -3,13 +3,14 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Savings } from '../../interfaces/savings.js';
 import { HttpResponse } from 'src/interfaces/http-response';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AhorrosService {
   private http = inject(HttpClient);
-  private baseUrl = 'http://localhost:3000/ahorros';
+  private baseUrl = `${environment.apiUrl}/ahorros`;
 
   public getAhorros(userId: number): Observable<HttpResponse<Savings[]>> {
     return this.http.get<HttpResponse<Savings[]>>(this.baseUrl + '?userId=' + userId);

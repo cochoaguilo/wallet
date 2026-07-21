@@ -3,6 +3,7 @@ import { inject, Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Deudas } from 'src/interfaces/deudas';
 import { HttpResponse } from 'src/interfaces/http-response';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
@@ -11,13 +12,13 @@ export class DeudasService {
   private deudasSubject = new BehaviorSubject<any[]>([]);
   deudas$ = this.deudasSubject.asObservable();
 
-  private apiUrl = 'http://localhost:3000/deudas';
+  private apiUrl = `${environment.apiUrl}/deudas`;
   private http = inject(HttpClient);
 
   constructor() {}
 
   getDeudas(userId: number): Observable<HttpResponse<Deudas[]>> {
-    return this.http.get<HttpResponse<Deudas[]>>(this.apiUrl + '?userId=' + userId);
+    return this.http.get<HttpResponse<Deudas[]>>(this.apiUrl + '?userId=' + userId,);
   }
 
   agregarDeuda(deuda: Deudas, userId: number): Observable<HttpResponse<Deudas>> {

@@ -1,6 +1,7 @@
 import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class AuthInterceptorService implements HttpInterceptor {
@@ -9,7 +10,7 @@ export class AuthInterceptorService implements HttpInterceptor {
     const token = sessionStorage.getItem('TOKEN');
     
     
-    if (token && req.url.startsWith('http://localhost:3000')) {
+    if (token && req.url.startsWith(environment.apiUrl)) {
       const authReq = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`

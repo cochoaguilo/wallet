@@ -100,7 +100,7 @@
               Precio: {{ accion.price | currency:'USD' }}
               Tenencia: {{ accion.hold || 0 }} {{ accion.symbol }}<br>
           Valor total: {{
-            (accion.hold || 0) * accion.price | currency: (accion.moneda || 'USD')
+            (accion.hold || 0) * accion.price | currency:  'USD'
           }}
               <div class="d-flex">
                 <ion-button fill="clear" size="small" color="primary" (click)="editarAccion(accion, $index)">

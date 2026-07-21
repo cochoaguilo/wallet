@@ -26,7 +26,11 @@
     @for (item of errors; track $index) {
       <span class="text-danger">{{item}}</span>
     }
-    <ion-button expand="block" type="submit" [disabled]="categoriaForm.invalid">Guardar</ion-button>
-    <ion-button expand="block" color="medium" type="button" (click)="onCancel()">Cancelar</ion-button>
+    <ion-button expand="block" type="submit" style="margin-top: 1rem;" [disabled]="categoriaForm.invalid">{{submitText()}}</ion-button>
+    @if (defaultButton()) {
+      <ion-button expand="block" color="medium" type="button" (click)="onCancel()">Cancelar</ion-button>
+    } @else {
+      <ng-content></ng-content>
+    }
   </form>
 </ion-card>

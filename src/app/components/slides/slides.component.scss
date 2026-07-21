@@ -1,0 +1,30 @@
+
+
+:host {
+  display: block;
+}
+
+.slides__container {
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.slides__slide {
+  display: flex;
+  align-items: stretch;
+  background-color: var(--swiper-theme-color, #fff);;
+}
+
+.slides__card {
+  width: 100%;
+  margin: 0;
+  height: 100%;
+  background-color: var(--swiper-theme-color, #fff);;
+}
+
+
+.slides__empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--ion-color-medium);
+}

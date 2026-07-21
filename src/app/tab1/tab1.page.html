@@ -50,6 +50,7 @@
 <ng-template #formTemplate>
   <app-form
     [fields]="formFields"
+    [defaultButton]="false"
     (submitForm)="agregarModificarCategoria($event)"
     (cancelar)="mostrarFormulario = false"
   >
@@ -70,6 +71,7 @@
 <app-dynamic-modal
   [show]="mostrarModalEliminar"
   [title]="'Confirmar eliminación'"
+  [footerButton]="true"
   [template]="confirmarEliminar"
   (aceptar)="confirmarEliminarCategoria()"
   (cerrar)="mostrarModalEliminar = false">

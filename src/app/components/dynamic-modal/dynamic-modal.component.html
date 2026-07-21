@@ -10,9 +10,12 @@
     </ion-header>
     <ion-content>
       <ng-container *ngTemplateOutlet="template"></ng-container>
-      <ion-footer>
-        <ion-button expand="block" color="primary" (click)="onAceptar()">Aceptar</ion-button>
-      </ion-footer>
+      @if (footerButton()) {
+        <ion-footer>
+          <ion-button expand="block" color="primary" (click)="onAceptar()">Aceptar</ion-button>
+        </ion-footer>
+      }
+      
     </ion-content>
   </ng-template>
 </ion-modal>

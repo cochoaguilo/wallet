@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output, TemplateRef } from '@angular/core';
+import { Component, EventEmitter, input, Input, OnInit, Output, TemplateRef } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 
 @Component({
@@ -15,6 +15,7 @@ export class DynamicModalComponent  {
   @Input() show = false;
   @Input() title = '';
   @Input() template!: TemplateRef<any>;
+  footerButton = input(false);
   @Output() aceptar = new EventEmitter<void>();
   @Output() cerrar = new EventEmitter<void>();
 

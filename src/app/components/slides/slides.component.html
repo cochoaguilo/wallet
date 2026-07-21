@@ -1,0 +1,26 @@
+@if (slides().length > 0) {
+  <div class="slides">
+    <swiper-container #swiperRef class="slides__container" [autoplay]="true">
+      @for (slide of slides(); track $index) {
+        <swiper-slide class="slides__slide">
+          <ion-card class="slides__card">
+            <ion-card-header>
+              <ion-card-title>{{ slide.title }}</ion-card-title>
+            </ion-card-header>
+    
+            <ion-card-content>
+              <p>{{ slide.description || slide.content }}</p>
+            </ion-card-content>
+          </ion-card>
+        </swiper-slide>
+      }
+      
+    </swiper-container>
+  </div>
+}
+@else {
+  <div class="slides__empty">
+    <p>No hay slides disponibles.</p>
+  </div>
+}
+
