@@ -1,9 +1,10 @@
-import { Component, inject, OnDestroy, OnInit, Signal, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
 import { DeudasService } from '../services/deudas.service';
 import { Subscription } from 'rxjs';
 import { Forms } from 'src/interfaces/forms';
 import { Deudas } from 'src/interfaces/deudas';
 import { HttpResponse } from 'src/interfaces/http-response';
+import { NotificationComponent } from '../components/notification/notification.component';
 
 @Component({
   selector: 'app-tab3',
@@ -19,6 +20,8 @@ export class Tab3Page implements OnInit, OnDestroy {
   deudaAEliminar: any = null;
   private userId:number;
   public deudas= signal<Deudas[]>([]);
+  toastMessage = signal('');
+  isToastOpen = signal(false);
   private deudasService = inject(DeudasService);
 
   formFields: Forms[] = [
@@ -36,25 +39,45 @@ export class Tab3Page implements OnInit, OnDestroy {
     this.userId = user.id;
   }
 
-  ngOnInit(): void {
-    
-    this.subscriptions.push(
-        this.deudasService.getDeudas(this.userId).subscribe((data: HttpResponse< Deudas[]>) => {
-          if (data.success) {
-            this.deudas.set(data.data as Deudas[]);
-          }
-        })
-      )
+  private mostrarNotificacion(mensaje: string) {
+    this.toastMessage.set(mensaje);
+    this.isToastOpen.set(true);
+    //this.notificationComponent?.setOpen(true);
   }
 
+  ngOnInit(): void {
+    this.subscriptions.push(
+      this.deudasService.getDeudas(this.userId).subscribe((data: HttpResponse<Deudas[]>) => {
+        if (data.success) {
+          this.deudas.set(data.data as Deudas[]);
+        } else {
+          this.mostrarNotificacion('No se pudo lograr la acción');
+        }
+      })
+    );
+  }
 
   agregarDeuda(deuda: any) {
+    const esEdicion = !!deuda.id;
+    const operacion = esEdicion
+      ? this.deudasService.actualizarDeuda(deuda.id, deuda)
+      : this.deudasService.agregarDeuda(deuda, this.userId);
+
     this.subscriptions.push(
-    this.deudasService.agregarDeuda(deuda, this.userId).subscribe((data: HttpResponse<Deudas>) => {
-      const nuevaDeuda = data.data ?? deuda;
-      this.deudas.update(deudasActuales => [...deudasActuales, nuevaDeuda]);
-    })
-    )
+      operacion.subscribe((data: HttpResponse<Deudas>) => {
+        if (data.success) {
+          const nuevaDeuda = data.data ?? deuda;
+          if (esEdicion) {
+            this.deudas.update((actual) => actual.map((item) => item.id === nuevaDeuda.id ? nuevaDeuda : item));
+          } else {
+            this.deudas.update((actual) => [...actual, nuevaDeuda]);
+          }
+          this.mostrarNotificacion(esEdicion ? 'editado con exito' : 'agregado con exito');
+        } else {
+          this.mostrarNotificacion('No se pudo lograr la acción');
+        }
+      })
+    );
     this.mostrarFormulario = false;
   }
   editarDeuda(deuda: any, index: number) {
@@ -82,11 +105,16 @@ export class Tab3Page implements OnInit, OnDestroy {
   if (this.deudaAEliminar) {
     const index = this.deudas().findIndex(d => d === this.deudaAEliminar);
     if (index > -1) {
-      this.deudas.update((actual) => actual.filter((_, i) => i !== index));
       this.subscriptions.push(
-        this.deudasService.eliminarDeuda(this.deudaAEliminar.id).subscribe()
+        this.deudasService.eliminarDeuda(this.deudaAEliminar.id).subscribe((response: HttpResponse<void>) => {
+          if (response.success) {
+            this.deudas.update((actual) => actual.filter((_, i) => i !== index));
+            this.mostrarNotificacion('eliminado con exito');
+          } else {
+            this.mostrarNotificacion('No se pudo lograr la acción');
+          }
+        })
       );
-      
     }
   }
   this.mostrarModalEliminar = false;

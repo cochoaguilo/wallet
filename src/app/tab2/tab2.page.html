@@ -37,18 +37,18 @@
         <ion-select-option value="nombre">Nombre</ion-select-option>
       </ion-select>
     </ion-item>
-    <ion-list class="inversiones-list">
-        @for (cripto of criptos() | ordenar:criterioCripto:holdings; track $index) {
+    <ion-list class="card-list">
+        @for (cripto of criptos() | ordenar:criterioCripto; track $index) {
           <ion-item >
-            <ion-label class="inversiones-item">
-              <strong>{{ cripto.name }}</strong> ({{ cripto.symbol | uppercase }})<br>
+            <ion-label class="card-item">
+              <strong>{{ cripto.name }}</strong> ({{ cripto.symbol | uppercase }}) - {{cripto.platform}}<br>
               Precio: {{ cripto.price | currency:'USD' }}
               Tenencia: {{ cripto.hold || 0 }} {{ cripto.symbol | uppercase }}<br>
         Valor total: {{
           (cripto.hold || 0) * cripto.price | currency:'USD'
         }}
             <div class="d-flex">
-                <ion-button fill="clear" size="small" color="primary" (click)="editarCripto(cripto, $index)">
+                <ion-button fill="clear" size="small" color="primary" (click)="cargarFormCripto(cripto)">
                   <ion-icon slot="icon-only" name="create-outline"></ion-icon>
                 </ion-button>
                 <ion-button fill="clear" size="small" color="danger" (click)="eliminarCripto(cripto.id)">
@@ -89,21 +89,22 @@
         <ion-select-option value="menorTenencia">Menor tenencia</ion-select-option>
         <ion-select-option value="mayorValor">Mayor valor total</ion-select-option>
         <ion-select-option value="menorValor">Menor valor total</ion-select-option>
+        <ion-select-option value="platform">Plataforma</ion-select-option>
         <ion-select-option value="nombre">Nombre</ion-select-option>
       </ion-select>
     </ion-item>
-    <ion-list class="inversiones-list">
-        @for (accion of acciones() ; track $index) {
+    <ion-list class="card-list">
+        @for (accion of acciones() | ordenar:criterioAccion; track $index) {
           <ion-item >
-            <ion-label class="inversiones-item">
-              <strong>{{ accion.name || accion.symbol }}</strong> ({{ accion.symbol }})<br>
-              Precio: {{ accion.price | currency:'USD' }}
+            <ion-label class="card-item">
+              <strong>{{ accion.name || accion.symbol }}</strong> ({{ accion.symbol }}) - {{accion.platform}}<br>
+              Precio: {{ accion.price | currency:'USD' }} -
               Tenencia: {{ accion.hold || 0 }} {{ accion.symbol }}<br>
           Valor total: {{
             (accion.hold || 0) * accion.price | currency:  'USD'
           }}
               <div class="d-flex">
-                <ion-button fill="clear" size="small" color="primary" (click)="editarAccion(accion, $index)">
+                <ion-button fill="clear" size="small" color="primary" (click)="cargarFormAccion(accion)">
                   <ion-icon slot="icon-only" name="create-outline"></ion-icon>
                 </ion-button>
                 <ion-button fill="clear" size="small" color="danger" (click)="eliminarAccion(accion.id)">
@@ -129,37 +130,29 @@
       {{ totalGeneral() | currency:'USD' }}
     </ion-label>
   </ion-item>
-  @if (!mostrarFormulario) {
-    <ion-button expand="block" color="primary" (click)="mostrarFormulario = true">
+  @if (!mostrarFormulario()) {
+    <ion-button expand="block" color="primary" (click)="mostrarFormulario.set(true)">
       Agregar inversión
     </ion-button>
   }
   
-
-    <!-- <h2>Bonos</h2>
-    <ion-list>
-      <ion-item *ngFor="let bono of bonos">
-        <ion-label>
-          <strong>{{ bono.symbol }}</strong><br>
-          Precio: {{ bono.price | currency:'USD' }}
-        </ion-label>
-      </ion-item>
-    </ion-list> -->
     </div>
   }
+  <app-notification [message]="toastMessage()" [colorType]="colorType"></app-notification>
 </ion-content>
 
 <ng-template #formTemplate>
   <app-form
     [fields]="formFields"
-    (submitForm)="agregarInversion($event)"
-    (cancelar)="mostrarFormulario = false">
+    [idValue]="currentItemId()"
+    (submitForm)="submitForm($event)"
+    (cancelar)="mostrarFormulario.set(false)">
   </app-form>
 </ng-template>
 
 <app-dynamic-modal
-  [show]="mostrarFormulario"
+  [show]="mostrarFormulario()"
   [title]="'Agregar inversión'"
   [template]="formTemplate"
-  (cerrar)="mostrarFormulario = false">
+  (cerrar)="mostrarFormulario.set(false)">
 </app-dynamic-modal>

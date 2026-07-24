@@ -20,8 +20,9 @@ export class AhorrosService {
     return this.http.get<HttpResponse<number>>(`${this.baseUrl}/totales?userId=${userId}`);
   }
 
-  public agregarAhorro(ahorro:Savings): Observable<HttpResponse<Savings>> {
-    return this.http.post<HttpResponse<Savings>>(this.baseUrl, ahorro);
+  public agregarAhorro(ahorro:Savings, userId: number): Observable<HttpResponse<Savings>> {
+    ahorro.quantity = Number(ahorro.quantity)
+    return this.http.post<HttpResponse<Savings>>(this.baseUrl +  `?userId=${userId}`, {...ahorro, userId});
   }
 
   public actualizarAhorro(data: Savings, id:number | null): Observable<HttpResponse<Savings>> {

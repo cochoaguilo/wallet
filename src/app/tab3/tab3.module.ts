@@ -7,6 +7,7 @@ import { Tab3Page } from './tab3.page';
 import { Tab3PageRoutingModule } from './tab3-routing.module';
 import { FormComponent } from '../components/form/form.component';
 import { DynamicModalComponent } from '../components/dynamic-modal/dynamic-modal.component';
+import { NotificationComponent } from '../components/notification/notification.component';
 
 @NgModule({
   imports: [
@@ -15,7 +16,8 @@ import { DynamicModalComponent } from '../components/dynamic-modal/dynamic-modal
     FormsModule,
     Tab3PageRoutingModule,
     FormComponent,
-    DynamicModalComponent
+    DynamicModalComponent,
+    NotificationComponent
   ],
   declarations: [Tab3Page]
 })

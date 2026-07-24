@@ -1,9 +1,11 @@
-import { Component, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { InversionesService } from '../services/inversiones.service';
 import { Investments } from 'src/interfaces/investments';
 import { FormComponent } from '../components/form/form.component';
-import { Subscription, of, take } from 'rxjs';
+import { NotificationComponent, themeColor } from '../components/notification/notification.component';
+import { Observable, Subject, take } from 'rxjs';
 import { Forms } from 'src/interfaces/forms';
+import { HttpResponse } from 'src/interfaces/http-response';
 
 @Component({
   selector: 'app-tab2',
@@ -12,22 +14,23 @@ import { Forms } from 'src/interfaces/forms';
   // eslint-disable-next-line @angular-eslint/prefer-standalone
   standalone: false,
 })
-export class Tab2Page implements OnInit, OnDestroy {
+export class Tab2Page implements OnInit {
   @ViewChild(FormComponent) formComponent!: FormComponent;
-  criptos = signal<any[]>([]);
-  acciones = signal<any[]>([]);
-  bonos: any[] = [];
+  @ViewChild(NotificationComponent) notificationComponent!: NotificationComponent;
+  criptos = signal<Investments[]>([]);
+  acciones = signal<Investments[]>([]);
   loading = signal(false);
+  toastMessage = signal('');
+  colorType: themeColor ="primary";
+  currentItemId = signal<number | null>(null);
   totalCriptos = signal(0);
   totalAcciones = signal(0);
   totalGeneral = signal(0);
-  private subscriptions: Subscription[] = [];
   private userId: number;
 
-  holdings: any;
   private inversionesService = inject(InversionesService);
 
-mostrarFormulario = false;
+mostrarFormulario = signal(false);
 
 formFields: Forms[] = [
   {
@@ -53,32 +56,10 @@ formFields: Forms[] = [
     this.userId = user.id;
   }
 
-  ordenCripto = '';
+ordenCripto = '';
 ordenAccion = '';
-criterioCripto = 'mayorPrecio';
-criterioAccion = 'mayorPrecio';
-editarIndexCripto: number | null = null;
-criptoAEditar: any = null;
-
-/* getCriptoOptions() {
-  return this.criptos
-    .map(c => ({
-      symbol: c.symbol,
-      name: c.name,
-      value: (this.holdings[c.symbol] || 0) * c.current_price
-    }))
-    .sort((a, b) => b.value - a.value);
-} */
-
-/* getAccionOptions() {
-  return this.acciones
-    .map(a => ({
-      symbol: a.symbol,
-      name: a.name || a.symbol,
-      value: (this.holdingsAcciones[a.symbol] || 0) * a.price
-    }))
-    .sort((a, b) => b.value - a.value);
-} */
+criterioCripto = 'mayorValor';
+criterioAccion = 'mayorValor';
 
 
   ngOnInit() {
@@ -87,58 +68,91 @@ criptoAEditar: any = null;
 
   private cargarInversiones() {
     this.loading.set(true);
-    this.subscriptions.push(
-      this.inversionesService.getAllTypeInvestment(this.userId).pipe(
-        take(1)
-      ).subscribe({
-        next: (data) => {
-          this.criptos.set(data.criptos ?? []);
-          this.acciones.set(data.acciones ?? []);
-          this.calcularTotales();
-          this.loading.set(false);
-        },
-        error: (err) => {
-          alert(err)
-          this.loading.set(false);
-        }
-      })
-    );
+    this.inversionesService.getAllTypeInvestment(this.userId).pipe(
+      take(1)
+    ).subscribe({
+      next: (data) => {        
+        this.criptos.set(data.criptos ?? []);
+        this.acciones.set(data.acciones ?? []);
+        this.calcularTotales();
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.loading.set(false);
+      }
+    });
   }
 
-  agregarInversion(item: Investments) {
-    console.log(this.editarIndexCripto);
-    
-    if (item.tipo === 'cripto') {
-        this.editarIndexCripto == null || this.editarIndexCripto < 0 ? 
-        this.subscriptions.push(this.inversionesService.agregarCripto(item, this.userId).subscribe({
-        next: () => {
-          this.cargarInversiones();
-        },
-        error: (err) => {
-          console.error('Error al agregar criptomoneda:', err);
-        }
-      })) : this.subscriptions.push(this.inversionesService.actualizarCripto(item.id, item).subscribe({
-        next: () => {
-          this.cargarInversiones();
-          this.editarIndexCripto = null;
-        },
-        error: (err) => {
-          console.error('Error al editar criptomoneda:', err);
-        }
-      }));
-      
-    } else if (item.tipo === 'accion') {
-      this.subscriptions.push(this.inversionesService.agregarInversion(item).subscribe({
-        next: () => {
-          this.cargarInversiones();
-        },
-        error: (err) => {
-          console.error('Error al agregar acción:', err);
-        }
-      }));
+  private mostrarNotificacion(mensaje: string) {
+    this.toastMessage.set(mensaje);
+    this.notificationComponent?.setOpen(true);
+  }
+
+  public submitForm(item: Investments) {
+    item.symbol = item.symbol.toLocaleUpperCase();
+    if (item.tipo == 'accion') {
+      this.agregarEditarAccion(item)
+    } else {
+      this.agregarEditarCripto(item)
     }
-    //this.calcularTotales();
-    this.mostrarFormulario = false;
+    this.mostrarFormulario.set(false);
+
+  }
+  
+
+  private async agregarEditarCripto(item: Investments) {
+    const esEdicion = !!item.id;
+
+    const solicitud = esEdicion
+      ? this.inversionesService.actualizarCripto(item.id, item, this.userId).pipe(take(1))
+      : (await this.inversionesService.agregarCripto(item, this.userId)).pipe(take(1));
+
+    solicitud.subscribe({
+      next: (response: HttpResponse<any>) => {
+        if (response.success) {
+          const itemPersistido = response.data ?? item;
+          if (esEdicion) {
+            this.criptos.update((actual) => actual.map((cripto) => cripto.id === itemPersistido.id ? { ...cripto, ...itemPersistido } : cripto));
+          } else {
+            this.criptos.update((actual) => [...actual, itemPersistido]);
+          }
+          this.calcularTotales();
+          this.mostrarNotificacion(esEdicion ? 'Editado con exito' : 'Agregado con exito');
+          this.colorType = 'success';
+        } else {
+          this.mostrarNotificacion('No se pudo lograr la acción');
+          this.colorType = 'danger';
+        }
+      },
+      error: () => (this.mostrarNotificacion('No se pudo lograr la acción'), this.colorType = 'danger')
+    });
+  }
+
+  private async agregarEditarAccion(item: Investments) {
+    const esEdicion = !!item.id;
+    const solicitud = esEdicion
+      ? this.inversionesService.editarInversion(item.id, item).pipe(take(1))
+      : (await this.inversionesService.agregarInversion(item, this.userId)).pipe(take(1));
+
+    solicitud.subscribe({
+      next: (response: HttpResponse<any>) => {
+        if (response.success) {
+          const itemPersistido = response.data ?? item;
+          if (esEdicion) {
+            this.acciones.update((actual) => actual.map((accion) => accion.id === itemPersistido.id ? { ...accion, ...itemPersistido } : accion));
+          } else {
+            this.acciones.update((actual) => [...actual, itemPersistido]);
+          }
+          this.calcularTotales();
+          this.mostrarNotificacion(esEdicion ? 'Editado con exito' : 'Agregado con exito');
+          this.colorType = 'success';
+        } else {
+          this.mostrarNotificacion('No se pudo lograr la acción');
+          this.colorType = 'danger';
+        }
+      },
+      error: () => (this.mostrarNotificacion('No se pudo lograr la acción'), this.colorType = 'danger')
+    });
   }
 
   calcularTotales() {
@@ -154,59 +168,74 @@ criptoAEditar: any = null;
     this.totalGeneral.set(this.totalCriptos() + this.totalAcciones());
   }
 
-  editarCripto(cripto: any, index: number) {
-  this.editarIndexCripto = index;
-  this.criptoAEditar = cripto;
-  this.mostrarFormulario = true;
+  cargarFormCripto(cripto: any) {
+    this.currentItemId.set(cripto?.id ?? null);
+    this.mostrarFormulario.set(true);
     
-  /* setTimeout(() => {
-    if (this.formComponent && this.formComponent.categoriaForm) {
-      this.formComponent.categoriaForm.patchValue({
-        tipo: 'cripto',
-        symbol: cripto.symbol,
-        name: cripto.name,
-        hold: cripto.hold,
-        plataforma: cripto.plataforma,
-        fecha: cripto.fecha
-      });
-    }
-  }); */
+    setTimeout(() => {
+      if (this.formComponent && this.formComponent.categoriaForm) {
+        this.formComponent.categoriaForm.patchValue({
+          tipo: 'cripto',
+          symbol: cripto.symbol,
+          name: cripto.name,
+          hold: cripto.hold,
+          platform: cripto.platform,
+          purchaseDate: cripto.purchaseDate,
+          id: cripto.id
+        });
+        console.log(this.formComponent.categoriaForm.value);
+        
+      }
+    },100);
 }
-editarAccion(accion: any, index: number) {
-  this.editarIndexCripto = index;
-  this.criptoAEditar = accion;
-  this.mostrarFormulario = true;
+cargarFormAccion(accion: any) {
+  this.currentItemId.set(accion?.id ?? null);
+  this.mostrarFormulario.set(true);
     
-  /* setTimeout(() => {
+  setTimeout(() => {
     if (this.formComponent && this.formComponent.categoriaForm) {
       this.formComponent.categoriaForm.patchValue({
         tipo: 'accion',
         symbol: accion.symbol,
         name: accion.name,
         hold: accion.hold,
-        plataforma: accion.plataforma,
-        fecha: accion.fecha
+        platform: accion.platform,
+        purchaseDate: accion.purchaseDate,
+        id: accion.id
       });
     }
-  }); */
+  },100);
 }
 
 eliminarAccion(id: number) {
-  this.subscriptions.push(this.inversionesService.eliminarInversion(id).subscribe(() => {
-    this.acciones.update((actual) => actual.filter(c => c.id !== id));
-    this.calcularTotales();
-  }));
+  this.inversionesService.eliminarInversion(id).pipe(take(1)).subscribe({
+    next: (response: HttpResponse<void>) => {
+      if (response.success) {
+        this.acciones.update((actual) => actual.filter(c => c.id !== id));
+        this.calcularTotales();
+        this.mostrarNotificacion('eliminado con exito');
+      } else {
+        this.mostrarNotificacion('No se pudo lograr la acción');
+      }
+    },
+    error: () => this.mostrarNotificacion('No se pudo lograr la acción')
+  });
 }
 
 eliminarCripto(id: number) {
-  this.subscriptions.push(this.inversionesService.eliminarCripto(id).subscribe(() => {
-    this.criptos.update((actual) => actual.filter(c => c.id !== id));
-    this.calcularTotales();
-  }));
+  this.inversionesService.eliminarCripto(id).pipe(take(1)).subscribe({
+    next: (response: HttpResponse<void>) => {
+      if (response.success) {
+        this.criptos.update((actual) => actual.filter(c => c.id !== id));
+        this.calcularTotales();
+        this.mostrarNotificacion('eliminado con exito');
+      } else {
+        this.mostrarNotificacion('No se pudo lograr la acción');
+      }
+    },
+    error: () => this.mostrarNotificacion('No se pudo lograr la acción')
+  });
 }
 
-ngOnDestroy(): void {
-  this.subscriptions.forEach(sub => sub.unsubscribe());
-}
 
 }

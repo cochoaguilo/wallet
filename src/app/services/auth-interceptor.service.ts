@@ -9,8 +9,8 @@ export class AuthInterceptorService implements HttpInterceptor {
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     const token = sessionStorage.getItem('TOKEN');
     
-    
-    if (token && req.url.startsWith(environment.apiUrl)) {
+    //el modulo externals es el que busca una api externa
+    if (token && !req.url.includes("externals")) {
       const authReq = req.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`

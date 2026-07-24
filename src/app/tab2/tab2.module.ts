@@ -8,6 +8,7 @@ import { Tab2PageRoutingModule } from './tab2-routing.module';
 import { FormComponent } from '../components/form/form.component';
 import { OrdenarPipe } from '../pipes/order.pipe';
 import { DynamicModalComponent } from '../components/dynamic-modal/dynamic-modal.component';
+import { NotificationComponent } from '../components/notification/notification.component';
 
 @NgModule({
   imports: [
@@ -18,7 +19,8 @@ import { DynamicModalComponent } from '../components/dynamic-modal/dynamic-modal
     FormComponent,
     OrdenarPipe,
     AsyncPipe,
-    DynamicModalComponent
+    DynamicModalComponent,
+    NotificationComponent
   ],
   declarations: [Tab2Page]
 })

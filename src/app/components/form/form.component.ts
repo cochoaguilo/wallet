@@ -1,9 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, inject, input, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, inject, input, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
 import { Forms } from 'src/interfaces/forms';
-import { Savings } from 'src/interfaces/savings';
 
 @Component({
   selector: 'app-form',
@@ -17,10 +16,12 @@ import { Savings } from 'src/interfaces/savings';
     ReactiveFormsModule
   ]
 })
-export class FormComponent implements OnInit {
+export class FormComponent implements OnInit, OnChanges {
 
   @Input() fields: Forms[] = [];
   @Input() errors!: string[];
+  @Input() includeId = true;
+  @Input() idValue: number | null = null;
   defaultButton = input(true);
   submitText = input("Guardar")
   @Output() submitForm = new EventEmitter<any>()
@@ -34,19 +35,34 @@ export class FormComponent implements OnInit {
   ngOnInit() {
     const group: any = {};
     this.fields.forEach(field => {
-      
-      group[field.name] = [field.type == 'text' ?  '' :  null, field.required && Validators.required]/* field.required
-        ? [field.default || '', Validators.required]
-        : [field.default || '']; */
+      group[field.name] = [field.type == 'text' ? '' : null, field.required && Validators.required];
     });
-    console.log('Formulario generado:', group);
+
+    group.id = [this.idValue ?? null];
     this.categoriaForm = this.fb.group(group);
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['idValue'] && this.categoriaForm?.get('id')) {
+      this.categoriaForm.get('id')?.setValue(this.idValue ?? null);
+      console.log(this.categoriaForm);
+      
+    }
+  }
+
   submit() {
-    console.log('Formulario enviado:', this.categoriaForm.value);
     if (this.categoriaForm.valid) {
-      this.submitForm.emit(this.categoriaForm.value);
+      const formValue = { ...this.categoriaForm.value };
+      const hiddenId = this.categoriaForm.get('id')?.value;
+
+      if (this.includeId && (hiddenId ?? this.idValue) !== null) {
+        formValue.id = hiddenId ?? this.idValue;
+      } else {
+        delete formValue.id;
+      }
+      console.log(formValue);
+      
+      this.submitForm.emit(formValue);
       this.categoriaForm.reset();
     }
   }

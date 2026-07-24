@@ -1,6 +1,9 @@
 <ion-card class="formulario-categoria">
   <form [formGroup]="categoriaForm" (ngSubmit)="submit()">
     @for (field of fields; track $index) {
+      @if (field.name === 'id') {
+        @continue;
+      }
       @if (field.type === 'select') {
         <ion-item >
           <ion-label position="floating">{{ field.label }}</ion-label>

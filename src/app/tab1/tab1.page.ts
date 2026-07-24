@@ -2,6 +2,7 @@ import { Component, inject, OnDestroy, OnInit, signal, ViewChild } from '@angula
 import { Savings } from 'src/interfaces/savings';
 import { AhorrosService } from '../services/ahorros.service';
 import { FormComponent } from '../components/form/form.component';
+import { NotificationComponent } from '../components/notification/notification.component';
 import { Subscription } from 'rxjs';
 import { Forms } from 'src/interfaces/forms';
 import { HttpResponse } from 'src/interfaces/http-response';
@@ -25,6 +26,8 @@ export class Tab1Page implements OnInit, OnDestroy {
   }
 
   public categorias = signal<Savings[]>([]);
+  toastMessage = signal('');
+  isToastOpen = signal(false)
 
   mostrarFormulario = false;
   editarIndex: number | null = null;
@@ -52,36 +55,54 @@ ngOnInit(): void {
   );
 }
 
+  private mostrarNotificacion(mensaje: string) {
+    this.toastMessage.set(mensaje);
+    this.isToastOpen.set(true);
+  }
+
   agregarModificarCategoria(data: Savings) {
-    console.log(data,this.editarId);
-    
     if (this.editarIndex !== null) {
       this.subscriptions.push(
-        this.ahorrosService.actualizarAhorro(data, this.editarId)
-      .subscribe()
+        this.ahorrosService.actualizarAhorro(data, this.editarId).subscribe({
+          next: (response: HttpResponse<Savings>) => {
+            if (response.success) {
+              const itemActualizado = response.data ?? data;
+              this.categorias.update((actual) => {
+                const copia = [...actual];
+                if (this.editarIndex !== null) {
+                  copia[this.editarIndex] = itemActualizado;
+                }
+                return copia;
+              });
+              this.mostrarNotificacion('editado con exito');
+            } else {
+              this.mostrarNotificacion('No se pudo lograr la acción');
+            }
+            this.editarIndex = null;
+          },
+          error: () => this.mostrarNotificacion('No se pudo lograr la acción')
+        })
       );
-      this.categorias.update((actual) => {
-        const copia = [...actual];
-        if (this.editarIndex !== null) {
-          copia[this.editarIndex] = data;
-        }
-        return copia;
-      });
-      this.editarIndex = null;
     } else {
-      this.categorias.update((actual) => [...actual, { ...data, id: this.categorias().length }]);
       this.subscriptions.push(
-        this.ahorrosService.agregarAhorro(data)
-      .subscribe()
+        this.ahorrosService.agregarAhorro(data, this.userId).subscribe({
+          next: (response: HttpResponse<Savings>) => {
+            if (response.success) {
+              this.categorias.update((actual) => [...actual, response.data ?? { ...data, id: Date.now() }]);
+              this.mostrarNotificacion('agregado con exito');
+            } else {
+              this.mostrarNotificacion('No se pudo lograr la acción');
+            }
+          },
+          error: () => this.mostrarNotificacion('No se pudo lograr la acción')
+        })
       );
     }
-    
-    
+
     this.mostrarFormulario = false;
   }
 
   editarCategoria(categoria: Savings, index: number) {
-      console.log("Hola");
 
   this.editarIndex = index;
   this.mostrarFormulario = true;
@@ -130,10 +151,19 @@ ngOnInit(): void {
   if (this.categoriaAEliminar) {
     const index = this.categorias().findIndex(c => c.id === this.categoriaAEliminar.id);
     if (index > -1) {
-      this.categorias.update((actual) => actual.filter((_, i) => i !== index));
       this.subscriptions.push(
-      this.ahorrosService.eliminarAhorro(this.categoriaAEliminar.id)
-      .subscribe())
+        this.ahorrosService.eliminarAhorro(this.categoriaAEliminar.id).subscribe({
+          next: (response: HttpResponse<void>) => {
+            if (response.success) {
+              this.categorias.update((actual) => actual.filter((_, i) => i !== index));
+              this.mostrarNotificacion('Eliminado con exito');
+            } else {
+              this.mostrarNotificacion('No se pudo eliminar');
+            }
+          },
+          error: () => this.mostrarNotificacion('No se pudo eliminar')
+        })
+      );
     }
   }
   this.mostrarModalEliminar = false;

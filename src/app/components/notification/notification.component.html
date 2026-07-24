@@ -1,0 +1,9 @@
+<ion-toast
+    [isOpen]="isToastOpen"
+    [message]="message()"
+    [color]="colorType()"
+    [duration]="5000"
+    position="bottom"
+    swipeGesture="vertical"
+    (didDismiss)="setOpen(false)"
+></ion-toast>

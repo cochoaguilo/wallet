@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, forkJoin, map, of, switchMap } from 'rxjs';
+import { Observable, concat, firstValueFrom, forkJoin, map, of, switchMap, take } from 'rxjs';
 import { HttpResponse } from 'src/interfaces/http-response';
 import { Investments } from 'src/interfaces/investments';
 import { environment } from '../../environments/environment';
@@ -21,12 +21,25 @@ export class InversionesService {
     return this.http.get<HttpResponse<any[]>>(this.criptoUrl + "?userId=" + userId);
   }
 
-  agregarCripto(data: any, userId:number): Observable<HttpResponse<any>> {
-    return this.http.post<HttpResponse<any>>(this.criptoUrl+ "?userId=" + userId, data);
+  async agregarCripto(data: Investments, userId:number): Promise<Observable<HttpResponse<any>>> {
+   let errorResponse = of({
+           status: 'error',
+           success: false,
+           message: 'El símbolo no se pudo encontrar',
+           data: null
+         } as HttpResponse<any>);
+   const apiResponse = await firstValueFrom(this.getCriptosAPI([data.symbol]).pipe(take(1)))
+   if(apiResponse.success && apiResponse.data.length == 1 ) {
+    //la api si no encuentra la moneda te devuelve la lista completa
+      return this.http.post<HttpResponse<any>>(this.criptoUrl+ "?userId=" + userId, data);
+   } else {
+      return errorResponse
+   }
   }
 
-  actualizarCripto(id: number, data: any): Observable<HttpResponse<any>> {
-    return this.http.put<HttpResponse<any>>(`${this.criptoUrl}/${id}`, data);
+  actualizarCripto(id: number, data: any, userId: number): Observable<HttpResponse<any>> {
+    data.tipo = undefined;
+    return this.http.patch<HttpResponse<any>>(`${this.criptoUrl}/${id}`, {...data, userId});
   }
 
   eliminarCripto(id: number): Observable<HttpResponse<void>> {
@@ -41,11 +54,23 @@ export class InversionesService {
     return this.http.get<HttpResponse<any[]>>(this.inversionesUrl+ "?userId=" + userId);
   }
 
-  agregarInversion(data: any): Observable<HttpResponse<any>> {
-    return this.http.post<HttpResponse<any>>(this.inversionesUrl, data);
+  async agregarInversion(data: Investments, userId:number): Promise<Observable<HttpResponse<any>>> {
+    try {
+      await firstValueFrom(this.getAPIacciones(data.symbol));
+      // si encuentra la acción se guarda en la base de datos
+      return this.http.post<HttpResponse<any>>(this.inversionesUrl + "?userId=" + userId, data);
+    } catch (error) {
+      return of({
+        status: 'error',
+        success: false,
+        message: 'El símbolo no se pudo encontrar',
+        data: null
+      } as HttpResponse<any>);
+    }
   }
 
   editarInversion(id: number, data: any): Observable<HttpResponse<any>> {
+    data.tipo = undefined;
     return this.http.patch<HttpResponse<any>>(`${this.inversionesUrl}/${id}`, data);
   }
 
@@ -59,8 +84,8 @@ export class InversionesService {
   }
 
   // Ejemplo: obtener precios de acciones populares (Financial Modeling Prep)
-  getPreciosAccionesAPI(): Observable<any> {
-    return this.http.get(this.externalsUrl + '/rava');
+  getAPIacciones(symbol: string): Observable<any> {
+    return this.http.get(this.externalsUrl + '/iol?symbol=' + symbol);
   }
 
   getCotizacionesDolares(): Observable<HttpResponse<Cotizaciones[]>> {
@@ -81,9 +106,34 @@ export class InversionesService {
       switchMap((response: HttpResponse<Investments[]>) => {
         if (!response.success) return of([]);
         const misAcciones = response.data ?? [];
-        const symbols = misAcciones.map((c: any) => c.symbol);
+        let obs$: Observable<any>[] = []
+        for (const accion of misAcciones) {
+          obs$.push(
+            this.getAPIacciones(accion.symbol).pipe(
+              map((data: HttpResponse<any>)=>{
+                if (!data.success) return {}
+                const response = data.data;
+                let price = Number(response.ultimoPrecio);
+                if (response.descripcionTitulo.includes("Bono") || 
+                response.descripcionTitulo.includes("Cupon") ) {
+                  price = price / 100
+                }
+                //si la moneda es pesos pasarlo a dolar mep
+                const priceCalculated = response.moneda == "peso_Argentino" ? price /
+                (dolarMEPStored ? JSON.parse(dolarMEPStored).sell: 1): price;
+                return {
+                  ...accion,
+                  price: priceCalculated,
+                  moneda: response.moneda,
+                };
+              })
+            )
+          )
+        }
+        return forkJoin(obs$)
+        /* const symbols = misAcciones.map((c: any) => c.symbol);
         if (!symbols.length || symbols.length === 0) return of([]);
-        return this.getPreciosAccionesAPI().pipe(
+        return this.getAPIacciones().pipe(
           map((precios: HttpResponse<any[]>) => {
             if (!precios.success) return [];
             // Filtrar precios para que solo queden los símbolos que están en misAcciones
@@ -102,14 +152,17 @@ export class InversionesService {
 
             return preciosfiltered.map((precio: any) => {
               const local = misAcciones.find((c: any) => (c.symbol as string).toLowerCase() === precio.simbolo.toLowerCase());
+              const price = Number(precio.ultimo)
+              const priceCalculated = precio.moneda == 'USD' ? price : price /
+              (dolarMEPStored ? JSON.parse(dolarMEPStored).sell: 1);
               return {
                 ...local,
-                price: Number(precio.ultimo) / (dolarMEPStored ? JSON.parse(dolarMEPStored).sell: 1),
+                price: priceCalculated,
                 moneda: precio.moneda,
               };
             });
           })
-        );
+        ); */
       })
     );
   }

@@ -15,9 +15,9 @@
 <ion-button expand="block" color="primary" (click)="mostrarFormulario = !mostrarFormulario">
     {{ mostrarFormulario ? 'Cancelar' : 'Agregar deuda' }}
   </ion-button>
-  <ion-list>
+  <ion-list class="card-list">
     @for (deuda of deudas(); track $index) {
-      <ion-item >
+      <ion-item class="card-item">
         <ion-label>
           <strong>{{ deuda.name }}</strong><br>
           {{ deuda.description }}<br>
@@ -36,10 +36,12 @@
       </ion-item>
     }
   </ion-list>
+  <app-notification [message]="toastMessage()"  [duration]="4000"></app-notification>
 </ion-content>
 <ng-template #formTemplate>
   <app-form
     [fields]="formFields"
+    [idValue]="editarId"
     (submitForm)="agregarDeuda($event)"
     (cancelar)="mostrarFormulario = false">
   </app-form>

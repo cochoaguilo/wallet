@@ -2,9 +2,10 @@ export interface Investments {
     tipo: 'cripto' | 'accion',
     symbol: string,
     name:string,
-    holdings: number,
-    plataforma: string,
+    hold: number,
+    platform: string,
     fecha: Date,
     id: number,
-    moneda: string
+    moneda: string,
+    price: number
 }

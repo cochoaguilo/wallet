@@ -15,18 +15,22 @@
       {{ mostrarFormulario ? 'Cancelar' : 'Agregar' }}
     </ion-button>
 
-    <div class="categorias-lista">
+    <div class="categorias-lista card-list">
       <ul>
         @for (categoria of categorias(); let i = $index; track categoria.id) {
-          <li>
-            <span class="categoria-tipo" [ngClass]="categoria.type"
-              >{{ categoria.type | titlecase }}</span
-            >
-            <span class="categoria-nombre">{{ categoria.name }}</span>
-            <span class="categoria-cantidad"
-              >{{ categoria.quantity | currency:'USD' }}</span
-            >
-            <div class="d-flex">
+          <li class="card-item">
+            <div class="d-flex justify-content-between" style="flex-grow: 1;">
+              <span class="categoria-nombre">{{ categoria.name }}</span>
+              <span class="categoria-descripcion">{{ categoria.description }}</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="categoria-tipo" [ngClass]="categoria.type"
+                >{{ categoria.type | titlecase }}</span
+              >
+              <span class="categoria-cantidad"
+                >{{ categoria.quantity | currency:'USD' }}</span
+              >
+              <div class="d-flex">
               <ion-button fill="clear" size="small" color="primary" (click)="editarCategoria(categoria, i)">
                 <ion-icon slot="icon-only" name="create-outline"></ion-icon>
               </ion-button>
@@ -34,6 +38,8 @@
                 <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
               </ion-button>
             </div>
+            </div>
+            
           </li>
         }
       </ul>
@@ -46,11 +52,13 @@
     <h2 class="chart-title">Gastos</h2>
     <app-bar-chart [categorias]="gastos" chartType="doughnut"> </app-bar-chart>
   </div>
+  <app-notification [message]="toastMessage()" [duration]="4000"></app-notification>
 </ion-content>
 <ng-template #formTemplate>
   <app-form
     [fields]="formFields"
     [defaultButton]="false"
+    [idValue]="editarId"
     (submitForm)="agregarModificarCategoria($event)"
     (cancelar)="mostrarFormulario = false"
   >

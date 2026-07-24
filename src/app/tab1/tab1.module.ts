@@ -8,6 +8,7 @@ import { Tab1PageRoutingModule } from './tab1-routing.module';
 import { BarChartComponent } from '../components/bar-chart/bar-chart.component';
 import { FormComponent } from '../components/form/form.component';
 import { DynamicModalComponent } from '../components/dynamic-modal/dynamic-modal.component';
+import { NotificationComponent } from '../components/notification/notification.component';
 
 @NgModule({
   imports: [
@@ -17,7 +18,8 @@ import { DynamicModalComponent } from '../components/dynamic-modal/dynamic-modal
     Tab1PageRoutingModule,
     BarChartComponent,
     FormComponent,
-    DynamicModalComponent
+    DynamicModalComponent,
+    NotificationComponent
   ],
   declarations: [Tab1Page]
 })
