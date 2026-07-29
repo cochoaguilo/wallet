@@ -5,6 +5,7 @@ import { Forms } from 'src/interfaces/forms';
 import { Deudas } from 'src/interfaces/deudas';
 import { HttpResponse } from 'src/interfaces/http-response';
 import { NotificationComponent } from '../components/notification/notification.component';
+import { FormComponent } from '../components/form/form.component';
 
 @Component({
   selector: 'app-tab3',
@@ -31,7 +32,7 @@ export class Tab3Page implements OnInit, OnDestroy {
   ];
   editarIndex: number | undefined;
   editarId: any;
-  formComponent: any;
+  @ViewChild(FormComponent) formComponent!: FormComponent;
   subscriptions: Subscription[] = [];
 
   constructor() {
@@ -86,16 +87,16 @@ export class Tab3Page implements OnInit, OnDestroy {
     this.editarId = deuda.id;
     
     // Rellena el formulario con los datos de la categoría seleccionada
-    /* setTimeout(() => {
+    setTimeout(() => {
         if (this.formComponent && this.formComponent.categoriaForm) {
           this.formFields.forEach(field => {
             if (this.formComponent.categoriaForm.get(field.name)) {
-              const key = field.name as keyof any;
+              const key = field.name;
               this.formComponent.categoriaForm.get(field.name)?.setValue(deuda[key]);
             }
           });
         }
-      }); */
+      }, 100);
   }
   eliminarDeuda(deuda: any) {
   this.deudaAEliminar = deuda;

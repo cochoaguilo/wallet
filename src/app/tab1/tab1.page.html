@@ -11,9 +11,7 @@
         <ion-title size="large">Ahorros</ion-title>
       </ion-toolbar>
     </ion-header>
-    <ion-button (click)="mostrarFormulario = !mostrarFormulario">
-      {{ mostrarFormulario ? 'Cancelar' : 'Agregar' }}
-    </ion-button>
+    
 
     <div class="categorias-lista card-list">
       <ul>
@@ -52,6 +50,9 @@
     <h2 class="chart-title">Gastos</h2>
     <app-bar-chart [categorias]="gastos" chartType="doughnut"> </app-bar-chart>
   </div>
+  <ion-button expand="block" color="primary"  (click)="mostrarFormulario = !mostrarFormulario">
+      {{ mostrarFormulario ? 'Cancelar' : 'Agregar' }}
+    </ion-button>
   <app-notification [message]="toastMessage()" [duration]="4000"></app-notification>
 </ion-content>
 <ng-template #formTemplate>

@@ -12,20 +12,16 @@
       <ion-title size="large">Deudas</ion-title>
     </ion-toolbar>
   </ion-header>
-<ion-button expand="block" color="primary" (click)="mostrarFormulario = !mostrarFormulario">
-    {{ mostrarFormulario ? 'Cancelar' : 'Agregar deuda' }}
-  </ion-button>
+
   <ion-list class="card-list">
     @for (deuda of deudas(); track $index) {
-      <ion-item class="card-item">
-        <ion-label>
+      <ion-item >
+        <ion-label class="card-item">
           <strong>{{ deuda.name }}</strong><br>
           {{ deuda.description }}<br>
-          Monto: {{ deuda.amount | currency:'USD' }}<br>
-          <!-- Fecha: {{ deuda.fecha | date:'dd/MM/yyyy' }}<br>
-          Interés: {{ deuda.interes }}% ({{ deuda.tipoInteres | titlecase }}) -->
-        </ion-label>
-        <div class="d-flex">
+          <div class="d-flex justify-content-between align-items-center">
+           <span>Monto: {{ deuda.amount | currency:'USD' }}</span> 
+            <div class="d-flex">
               <ion-button fill="clear" size="small" color="primary" (click)="editarDeuda(deuda, $index)">
                 <ion-icon slot="icon-only" name="create-outline"></ion-icon>
               </ion-button>
@@ -33,9 +29,15 @@
                 <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
               </ion-button>
             </div>
+          </div>
+        </ion-label>
+        
       </ion-item>
     }
   </ion-list>
+  <ion-button expand="block" color="primary" (click)="mostrarFormulario = !mostrarFormulario">
+    {{ mostrarFormulario ? 'Cancelar' : 'Agregar deuda' }}
+  </ion-button>
   <app-notification [message]="toastMessage()"  [duration]="4000"></app-notification>
 </ion-content>
 <ng-template #formTemplate>
