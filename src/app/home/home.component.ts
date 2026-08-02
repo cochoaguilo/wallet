@@ -40,7 +40,6 @@ export class HomeComponent  implements OnInit {
           `
         }
       }))
-      console.log(this.slides());
       
       const dolarMEP  = data.data.find((dol:Cotizaciones) => dol.origin == "BOLSA");
       sessionStorage.setItem("dolarMEP", JSON.stringify(dolarMEP))

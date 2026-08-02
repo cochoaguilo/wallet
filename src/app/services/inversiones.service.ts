@@ -104,8 +104,8 @@ export class InversionesService {
     const dolarMEPStored = sessionStorage.getItem('dolarMEP'); 
     return this.getInversion(userId).pipe(
       switchMap((response: HttpResponse<Investments[]>) => {
-        if (!response.success) return of([]);
         const misAcciones = response.data ?? [];
+        if (!response.success || misAcciones.length == 0) return of([]);
         let obs$: Observable<any>[] = []
         for (const accion of misAcciones) {
           obs$.push(

@@ -1,9 +1,9 @@
-import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { InversionesService } from '../services/inversiones.service';
 import { Investments } from 'src/interfaces/investments';
 import { FormComponent } from '../components/form/form.component';
 import { NotificationComponent, themeColor } from '../components/notification/notification.component';
-import { Observable, Subject, take } from 'rxjs';
+import { Observable, Subject, take, takeUntil, takeWhile } from 'rxjs';
 import { Forms } from 'src/interfaces/forms';
 import { HttpResponse } from 'src/interfaces/http-response';
 
@@ -14,19 +14,23 @@ import { HttpResponse } from 'src/interfaces/http-response';
   // eslint-disable-next-line @angular-eslint/prefer-standalone
   standalone: false,
 })
-export class Tab2Page implements OnInit {
+export class Tab2Page implements OnInit, OnDestroy {
   @ViewChild(FormComponent) formComponent!: FormComponent;
   @ViewChild(NotificationComponent) notificationComponent!: NotificationComponent;
   criptos = signal<Investments[]>([]);
   acciones = signal<Investments[]>([]);
   loading = signal(false);
   toastMessage = signal('');
+  mostrarValores = signal(true);
+  mostrarModalEliminar = false;
+  instrumentoAEliminar!:Investments;
   colorType: themeColor ="primary";
   currentItemId = signal<number | null>(null);
   totalCriptos = signal(0);
   totalAcciones = signal(0);
   totalGeneral = signal(0);
   private userId: number;
+  private destroy$ = new Subject<void>();
 
   private inversionesService = inject(InversionesService);
 
@@ -69,9 +73,11 @@ criterioAccion = 'mayorValor';
   private cargarInversiones() {
     this.loading.set(true);
     this.inversionesService.getAllTypeInvestment(this.userId).pipe(
-      take(1)
+      takeUntil(this.destroy$)
     ).subscribe({
       next: (data) => {        
+        console.log(data);
+        
         this.criptos.set(data.criptos ?? []);
         this.acciones.set(data.acciones ?? []);
         this.calcularTotales();
@@ -183,7 +189,6 @@ criterioAccion = 'mayorValor';
           purchaseDate: cripto.purchaseDate,
           id: cripto.id
         });
-        console.log(this.formComponent.categoriaForm.value);
         
       }
     },100);
@@ -207,6 +212,11 @@ cargarFormAccion(accion: any) {
   },100);
 }
 
+showModalEliminar(instrumento: Investments){
+  this.instrumentoAEliminar = instrumento;
+  this.mostrarModalEliminar = true;
+}
+
 eliminarAccion(id: number) {
   this.inversionesService.eliminarInversion(id).pipe(take(1)).subscribe({
     next: (response: HttpResponse<void>) => {
@@ -220,6 +230,7 @@ eliminarAccion(id: number) {
     },
     error: () => this.mostrarNotificacion('No se pudo lograr la acción')
   });
+  this.mostrarModalEliminar = false;
 }
 
 eliminarCripto(id: number) {
@@ -235,7 +246,11 @@ eliminarCripto(id: number) {
     },
     error: () => this.mostrarNotificacion('No se pudo lograr la acción')
   });
+  this.mostrarModalEliminar = false;
 }
 
-
+ngOnDestroy(): void {
+  this.destroy$.next();
+  this.destroy$.complete();
+}
 }

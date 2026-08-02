@@ -25,7 +25,7 @@
               <ion-button fill="clear" size="small" color="primary" (click)="editarDeuda(deuda, $index)">
                 <ion-icon slot="icon-only" name="create-outline"></ion-icon>
               </ion-button>
-              <ion-button fill="clear" size="small" color="danger" (click)="eliminarDeuda(deuda.id)">
+              <ion-button fill="clear" size="small" color="danger" (click)="eliminarDeuda(deuda)">
                 <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
               </ion-button>
             </div>
@@ -35,35 +35,36 @@
       </ion-item>
     }
   </ion-list>
-  <ion-button expand="block" color="primary" (click)="mostrarFormulario = !mostrarFormulario">
-    {{ mostrarFormulario ? 'Cancelar' : 'Agregar deuda' }}
+  <ion-button expand="block" color="primary" (click)="mostrarFormulario.set(true)">
+    {{ mostrarFormulario() ? 'Cancelar' : 'Agregar deuda' }}
   </ion-button>
-  <app-notification [message]="toastMessage()"  [duration]="4000"></app-notification>
+  <app-notification [message]="toastMessage()" [colorType]="colorType" [duration]="4000"></app-notification>
 </ion-content>
 <ng-template #formTemplate>
   <app-form
     [fields]="formFields"
     [idValue]="editarId"
-    (submitForm)="agregarDeuda($event)"
-    (cancelar)="mostrarFormulario = false">
+    (submitForm)="agregarEditarDeuda($event)"
+    (cancelar)="mostrarFormulario.set(false)">
   </app-form>
 </ng-template>
 
 <ng-template #confirmarTemplate let-deuda="deuda">
-  <p>¿Estás seguro que deseas eliminar la deuda <strong>{{ deuda?.nombre }}</strong>?</p>
+  <p>¿Estás seguro que deseas eliminar la deuda <strong>{{ deudaAEliminar.name }}</strong>?</p>
 </ng-template>
 
 <app-dynamic-modal
-  [show]="mostrarFormulario"
+  [show]="mostrarFormulario()"
   [title]="'Agregar deuda'"
   [template]="formTemplate"
-  (cerrar)="mostrarFormulario = false">
+  (cerrar)="mostrarFormulario.set(false)">
 </app-dynamic-modal>
 
 <app-dynamic-modal
   [show]="mostrarModalEliminar"
   [title]="'Confirmar eliminación'"
   [template]="confirmarTemplate"
+  [footerButton]="true"
   (aceptar)="confirmarEliminarDeuda()"
   (cerrar)="mostrarModalEliminar = false">
 </app-dynamic-modal>

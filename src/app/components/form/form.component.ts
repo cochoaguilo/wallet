@@ -45,7 +45,6 @@ export class FormComponent implements OnInit, OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['idValue'] && this.categoriaForm?.get('id')) {
       this.categoriaForm.get('id')?.setValue(this.idValue ?? null);
-      console.log(this.categoriaForm);
       
     }
   }
@@ -60,7 +59,6 @@ export class FormComponent implements OnInit, OnChanges {
       } else {
         delete formValue.id;
       }
-      console.log(formValue);
       
       this.submitForm.emit(formValue);
       this.categoriaForm.reset();

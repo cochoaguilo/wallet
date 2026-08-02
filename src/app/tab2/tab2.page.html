@@ -15,17 +15,24 @@
     <div>
       <div class="d-flex justify-content-around align-items-center">
         <h2>Criptomonedas</h2>
-        <ion-button id="click-trigger">
-          <ion-icon name="help-circle-outline"></ion-icon>
-        </ion-button>
-        <ion-popover trigger="click-trigger" triggerAction="click">
-          <ng-template>
-            <ion-content class="ion-padding">Agregue la criptomoneda segun la tenencia que tenga. 
-              Le mostraremos el total según el precio del momento</ion-content>
-          </ng-template>
-        </ion-popover>
+        <div class="d-flex align-items-center">
+          <ion-button fill="clear" size="small" (click)="mostrarValores.set(!mostrarValores())" aria-label="Alternar visibilidad de valores">
+            <ion-icon [name]="mostrarValores() ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+          </ion-button>
+          <ion-button id="click-trigger">
+            <ion-icon name="help-circle-outline"></ion-icon>
+          </ion-button>
+        </div>
       </div>
-    <ion-item>
+
+      <ion-popover trigger="click-trigger" triggerAction="click">
+        <ng-template>
+          <ion-content class="ion-padding">Agregue la criptomoneda segun la tenencia que tenga.
+            Le mostraremos el total según el precio del momento</ion-content>
+        </ng-template>
+      </ion-popover>
+
+      <ion-item>
       <ion-label>Ordenar por</ion-label>
       <ion-select [(ngModel)]="criterioCripto">
         <ion-select-option value="mayorPrecio">Mayor precio</ion-select-option>
@@ -43,15 +50,20 @@
             <ion-label class="card-item">
               <strong>{{ cripto.name }}</strong> ({{ cripto.symbol | uppercase }}) - {{cripto.platform}}<br>
               Precio: {{ cripto.price | currency:'USD' }}
-              Tenencia: {{ cripto.hold || 0 }} {{ cripto.symbol | uppercase }}<br>
-        Valor total: {{
-          (cripto.hold || 0) * cripto.price | currency:'USD'
-        }}
+              @if (mostrarValores()) {
+                Tenencia: {{ cripto.hold || 0 }} {{ cripto.symbol | uppercase }}<br>
+                Valor total: {{
+                  (cripto.hold || 0) * cripto.price | currency:'USD'
+                }}
+              } @else {
+                Tenencia: ••••••<br>
+                Valor total: ••••••
+              }
             <div class="d-flex">
                 <ion-button fill="clear" size="small" color="primary" (click)="cargarFormCripto(cripto)">
                   <ion-icon slot="icon-only" name="create-outline"></ion-icon>
                 </ion-button>
-                <ion-button fill="clear" size="small" color="danger" (click)="eliminarCripto(cripto.id)">
+                <ion-button fill="clear" size="small" color="danger" (click)="showModalEliminar(cripto)">
                   <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
                 </ion-button>
               </div>
@@ -62,8 +74,11 @@
     </ion-list>
     <ion-item color="light">
       <ion-label>
+        
         <strong>Total Criptomonedas:</strong>
+        @if (mostrarValores()) {
         {{ totalCriptos() | currency:'USD' }}
+        } @else {••••••}
       </ion-label>
     </ion-item>
     <div class="d-flex justify-content-around align-items-center">
@@ -98,16 +113,21 @@
           <ion-item >
             <ion-label class="card-item">
               <strong>{{ accion.name || accion.symbol }}</strong> ({{ accion.symbol }}) - {{accion.platform}}<br>
-              Precio: {{ accion.price | currency:'USD' }} -
-              Tenencia: {{ accion.hold || 0 }} {{ accion.symbol }}<br>
-          Valor total: {{
-            (accion.hold || 0) * accion.price | currency:  'USD'
-          }}
+              Precio: {{ accion.price | currency:'USD' }}
+              @if (mostrarValores()) {
+                - Tenencia: {{ accion.hold || 0 }} {{ accion.symbol }}<br>
+                Valor total: {{
+                  (accion.hold || 0) * accion.price | currency:  'USD'
+                }}
+              } @else {
+                - Tenencia: ••••••<br>
+                Valor total: ••••••
+              }
               <div class="d-flex">
                 <ion-button fill="clear" size="small" color="primary" (click)="cargarFormAccion(accion)">
                   <ion-icon slot="icon-only" name="create-outline"></ion-icon>
                 </ion-button>
-                <ion-button fill="clear" size="small" color="danger" (click)="eliminarAccion(accion.id)">
+                <ion-button fill="clear" size="small" color="danger" (click)="showModalEliminar(accion)">
                   <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
                 </ion-button>
               </div>
@@ -120,14 +140,19 @@
     <ion-item color="light">
   <ion-label>
     <strong>Total Acciones:</strong>
-    {{ totalAcciones() | currency:'USD' }}
+    @if (mostrarValores()) {
+      {{ totalAcciones() | currency:'USD' }}
+    } @else {••••••}
+    
   </ion-label>
   </ion-item>
   
   <ion-item color="primary">
     <ion-label>
       <strong>Total General:</strong>
+      @if (mostrarValores()) {
       {{ totalGeneral() | currency:'USD' }}
+      }@else {••••••}
     </ion-label>
   </ion-item>
   @if (!mostrarFormulario()) {
@@ -156,3 +181,16 @@
   [template]="formTemplate"
   (cerrar)="mostrarFormulario.set(false)">
 </app-dynamic-modal>
+
+<app-dynamic-modal
+  [show]="mostrarModalEliminar"
+  [title]="'Confirmar eliminación'"
+  [template]="confirmarTemplate"
+  [footerButton]="true"
+  (aceptar)="instrumentoAEliminar.tipo == 'cripto'? eliminarCripto(instrumentoAEliminar.id) : eliminarAccion(instrumentoAEliminar.id)"
+  (cerrar)="mostrarModalEliminar = false">
+</app-dynamic-modal>
+
+<ng-template #confirmarTemplate let-inversion="inversion">
+  <p>¿Estás seguro que deseas eliminar la inversion <strong>{{ instrumentoAEliminar.name }}</strong>?</p>
+</ng-template>

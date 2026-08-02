@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { Forms } from 'src/interfaces/forms';
 import { Deudas } from 'src/interfaces/deudas';
 import { HttpResponse } from 'src/interfaces/http-response';
-import { NotificationComponent } from '../components/notification/notification.component';
+import { NotificationComponent, themeColor } from '../components/notification/notification.component';
 import { FormComponent } from '../components/form/form.component';
 
 @Component({
@@ -16,13 +16,13 @@ import { FormComponent } from '../components/form/form.component';
 })
 export class Tab3Page implements OnInit, OnDestroy {
 
-  mostrarFormulario = false;
+  mostrarFormulario = signal(false);
   mostrarModalEliminar = false;
-  deudaAEliminar: any = null;
+  deudaAEliminar!: Deudas;
   private userId:number;
   public deudas= signal<Deudas[]>([]);
   toastMessage = signal('');
-  isToastOpen = signal(false);
+  colorType: themeColor ="primary";
   private deudasService = inject(DeudasService);
 
   formFields: Forms[] = [
@@ -33,6 +33,7 @@ export class Tab3Page implements OnInit, OnDestroy {
   editarIndex: number | undefined;
   editarId: any;
   @ViewChild(FormComponent) formComponent!: FormComponent;
+  @ViewChild(NotificationComponent) notificationComponent!: NotificationComponent;
   subscriptions: Subscription[] = [];
 
   constructor() {
@@ -40,10 +41,10 @@ export class Tab3Page implements OnInit, OnDestroy {
     this.userId = user.id;
   }
 
-  private mostrarNotificacion(mensaje: string) {
+  private mostrarNotificacion(mensaje: string, colorType: themeColor) {
+    this.colorType = colorType;
     this.toastMessage.set(mensaje);
-    this.isToastOpen.set(true);
-    //this.notificationComponent?.setOpen(true);
+    this.notificationComponent?.setOpen(true);
   }
 
   ngOnInit(): void {
@@ -52,13 +53,13 @@ export class Tab3Page implements OnInit, OnDestroy {
         if (data.success) {
           this.deudas.set(data.data as Deudas[]);
         } else {
-          this.mostrarNotificacion('No se pudo lograr la acción');
+          this.mostrarNotificacion('No se pudo lograr la acción', 'danger');
         }
       })
     );
   }
 
-  agregarDeuda(deuda: any) {
+  agregarEditarDeuda(deuda: Deudas) {
     const esEdicion = !!deuda.id;
     const operacion = esEdicion
       ? this.deudasService.actualizarDeuda(deuda.id, deuda)
@@ -73,17 +74,17 @@ export class Tab3Page implements OnInit, OnDestroy {
           } else {
             this.deudas.update((actual) => [...actual, nuevaDeuda]);
           }
-          this.mostrarNotificacion(esEdicion ? 'editado con exito' : 'agregado con exito');
+          this.mostrarNotificacion(esEdicion ? 'editado con exito' : 'agregado con exito', 'success');
         } else {
-          this.mostrarNotificacion('No se pudo lograr la acción');
+          this.mostrarNotificacion('No se pudo lograr la acción', 'danger');
         }
       })
     );
-    this.mostrarFormulario = false;
+    this.mostrarFormulario.set(false);
   }
   editarDeuda(deuda: any, index: number) {
     this.editarIndex = index;
-    this.mostrarFormulario = true;
+    this.mostrarFormulario.set(true);
     this.editarId = deuda.id;
     
     // Rellena el formulario con los datos de la categoría seleccionada
@@ -98,7 +99,7 @@ export class Tab3Page implements OnInit, OnDestroy {
         }
       }, 100);
   }
-  eliminarDeuda(deuda: any) {
+  eliminarDeuda(deuda: Deudas) {
   this.deudaAEliminar = deuda;
   this.mostrarModalEliminar = true;
   }
@@ -110,16 +111,15 @@ export class Tab3Page implements OnInit, OnDestroy {
         this.deudasService.eliminarDeuda(this.deudaAEliminar.id).subscribe((response: HttpResponse<void>) => {
           if (response.success) {
             this.deudas.update((actual) => actual.filter((_, i) => i !== index));
-            this.mostrarNotificacion('eliminado con exito');
+            this.mostrarNotificacion('eliminado con exito', 'success');
           } else {
-            this.mostrarNotificacion('No se pudo lograr la acción');
+            this.mostrarNotificacion('No se pudo lograr la acción', 'danger');
           }
         })
       );
     }
   }
   this.mostrarModalEliminar = false;
-  this.deudaAEliminar = null;
 }
 
 ngOnDestroy(): void {

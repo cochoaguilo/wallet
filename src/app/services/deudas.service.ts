@@ -9,8 +9,6 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class DeudasService {
-  private deudasSubject = new BehaviorSubject<any[]>([]);
-  deudas$ = this.deudasSubject.asObservable();
 
   private apiUrl = `${environment.apiUrl}/deudas`;
   private http = inject(HttpClient);
@@ -22,8 +20,7 @@ export class DeudasService {
   }
 
   agregarDeuda(deuda: Deudas, userId: number): Observable<HttpResponse<Deudas>> {
-    const deudas = [...this.deudasSubject.value, deuda];
-    this.deudasSubject.next(deudas);
+
     return this.http.post<HttpResponse<Deudas>>(this.apiUrl + '?userId=' + userId, deuda);
   }
 

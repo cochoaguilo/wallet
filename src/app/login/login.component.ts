@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, signal } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { FormComponent } from '../components/form/form.component';
 import { AuthService } from '../services/auth.service';
@@ -16,7 +16,7 @@ import { Forms } from 'src/interfaces/forms';
   imports: [CommonModule, IonicModule, FormComponent, RouterLink]
 })
 export class LoginComponent {
-  isLoading = false;
+  isLoading = signal(false);
   errors: string[] = []
   constructor(
     private authService: AuthService,
@@ -35,18 +35,18 @@ export class LoginComponent {
       return;
     }
 
-    this.isLoading = true;
+    this.isLoading.set(true);
     this.authService.login(data)
       .pipe(
         take(1),
         catchError((err) => {
-          this.isLoading = false;
+          this.isLoading.set(false);
           this.errors = [err?.error.message || 'Error de autenticación']
           return [];
         })
       )
       .subscribe(response => {
-        this.isLoading = false;
+        this.isLoading.set(false);
         if (response && response.data?.access_token) {
           this.errors = [];
           const expiresIn = response.data.expires_in || 200;
