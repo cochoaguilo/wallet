@@ -26,6 +26,7 @@ export class Tab2Page implements OnInit, OnDestroy {
   instrumentoAEliminar!:Investments;
   colorType: themeColor ="primary";
   currentItemId = signal<number | null>(null);
+  formData: Record<string, any> | null = null;
   totalCriptos = signal(0);
   totalAcciones = signal(0);
   totalGeneral = signal(0);
@@ -75,9 +76,7 @@ criterioAccion = 'mayorValor';
     this.inversionesService.getAllTypeInvestment(this.userId).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (data) => {        
-        console.log(data);
-        
+      next: (data) => {                
         this.criptos.set(data.criptos ?? []);
         this.acciones.set(data.acciones ?? []);
         this.calcularTotales();
@@ -101,8 +100,24 @@ criterioAccion = 'mayorValor';
     } else {
       this.agregarEditarCripto(item)
     }
-    this.mostrarFormulario.set(false);
+    this.cerrarFormulario();
 
+  }
+
+  get modalTitle(): string {
+    return this.currentItemId() !== null || this.formData !== null ? 'Editar inversión' : 'Agregar inversión';
+  }
+
+  abrirFormularioNuevo() {
+    this.currentItemId.set(null);
+    this.formData = null;
+    this.mostrarFormulario.set(true);
+  }
+
+  cerrarFormulario() {
+    this.currentItemId.set(null);
+    this.formData = null;
+    this.mostrarFormulario.set(false);
   }
   
 
@@ -126,7 +141,7 @@ criterioAccion = 'mayorValor';
           this.mostrarNotificacion(esEdicion ? 'Editado con exito' : 'Agregado con exito');
           this.colorType = 'success';
         } else {
-          this.mostrarNotificacion('No se pudo lograr la acción');
+          this.mostrarNotificacion(response.message || 'No se pudo lograr la acción');
           this.colorType = 'danger';
         }
       },
@@ -138,7 +153,7 @@ criterioAccion = 'mayorValor';
     const esEdicion = !!item.id;
     const solicitud = esEdicion
       ? this.inversionesService.editarInversion(item.id, item).pipe(take(1))
-      : (await this.inversionesService.agregarInversion(item, this.userId)).pipe(take(1));
+      : ( this.inversionesService.agregarInversion(item, this.userId)).pipe(take(1));
 
     solicitud.subscribe({
       next: (response: HttpResponse<any>) => {
@@ -153,7 +168,7 @@ criterioAccion = 'mayorValor';
           this.mostrarNotificacion(esEdicion ? 'Editado con exito' : 'Agregado con exito');
           this.colorType = 'success';
         } else {
-          this.mostrarNotificacion('No se pudo lograr la acción');
+          this.mostrarNotificacion(response.message || 'No se pudo lograr la acción');
           this.colorType = 'danger';
         }
       },
@@ -176,41 +191,31 @@ criterioAccion = 'mayorValor';
 
   cargarFormCripto(cripto: any) {
     this.currentItemId.set(cripto?.id ?? null);
+    this.formData = {
+      tipo: 'cripto',
+      symbol: cripto.symbol,
+      name: cripto.name,
+      hold: cripto.hold,
+      platform: cripto.platform,
+      purchaseDate: cripto.purchaseDate,
+      id: cripto.id
+    };
     this.mostrarFormulario.set(true);
-    
-    setTimeout(() => {
-      if (this.formComponent && this.formComponent.categoriaForm) {
-        this.formComponent.categoriaForm.patchValue({
-          tipo: 'cripto',
-          symbol: cripto.symbol,
-          name: cripto.name,
-          hold: cripto.hold,
-          platform: cripto.platform,
-          purchaseDate: cripto.purchaseDate,
-          id: cripto.id
-        });
-        
-      }
-    },100);
-}
-cargarFormAccion(accion: any) {
-  this.currentItemId.set(accion?.id ?? null);
-  this.mostrarFormulario.set(true);
-    
-  setTimeout(() => {
-    if (this.formComponent && this.formComponent.categoriaForm) {
-      this.formComponent.categoriaForm.patchValue({
-        tipo: 'accion',
-        symbol: accion.symbol,
-        name: accion.name,
-        hold: accion.hold,
-        platform: accion.platform,
-        purchaseDate: accion.purchaseDate,
-        id: accion.id
-      });
-    }
-  },100);
-}
+  }
+
+  cargarFormAccion(accion: any) {
+    this.currentItemId.set(accion?.id ?? null);
+    this.formData = {
+      tipo: 'accion',
+      symbol: accion.symbol,
+      name: accion.name,
+      hold: accion.hold,
+      platform: accion.platform,
+      purchaseDate: accion.purchaseDate,
+      id: accion.id
+    };
+    this.mostrarFormulario.set(true);
+  }
 
 showModalEliminar(instrumento: Investments){
   this.instrumentoAEliminar = instrumento;

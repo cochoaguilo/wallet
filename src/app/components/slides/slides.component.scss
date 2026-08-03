@@ -19,7 +19,10 @@
   width: 100%;
   margin: 0;
   height: 100%;
-  background-color: var(--swiper-theme-color, #fff);;
+  background-color: var(--swiper-theme-color, #fff);
+  ion-card-content {
+    color: black;
+  }
 }
 
 

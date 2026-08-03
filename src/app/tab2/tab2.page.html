@@ -13,7 +13,7 @@
   
   @if(!loading()) {
     <div>
-      <div class="d-flex justify-content-around align-items-center">
+      <div class="d-flex justify-content-between m-2 align-items-center">
         <h2>Criptomonedas</h2>
         <div class="d-flex align-items-center">
           <ion-button fill="clear" size="small" (click)="mostrarValores.set(!mostrarValores())" aria-label="Alternar visibilidad de valores">
@@ -81,7 +81,7 @@
         } @else {••••••}
       </ion-label>
     </ion-item>
-    <div class="d-flex justify-content-around align-items-center">
+    <div class="d-flex justify-content-between m-2 align-items-center">
       <h2>Instrumentos</h2>
       <ion-button id="click-acciones">
           <ion-icon name="help-circle-outline"></ion-icon>
@@ -156,7 +156,7 @@
     </ion-label>
   </ion-item>
   @if (!mostrarFormulario()) {
-    <ion-button expand="block" color="primary" (click)="mostrarFormulario.set(true)">
+    <ion-button expand="block" color="primary" (click)="abrirFormularioNuevo()">
       Agregar inversión
     </ion-button>
   }
@@ -170,14 +170,15 @@
   <app-form
     [fields]="formFields"
     [idValue]="currentItemId()"
+    [initialData]="formData"
     (submitForm)="submitForm($event)"
-    (cancelar)="mostrarFormulario.set(false)">
+    (cancelar)="cerrarFormulario()">
   </app-form>
 </ng-template>
 
 <app-dynamic-modal
   [show]="mostrarFormulario()"
-  [title]="'Agregar inversión'"
+  [title]="modalTitle"
   [template]="formTemplate"
   (cerrar)="mostrarFormulario.set(false)">
 </app-dynamic-modal>

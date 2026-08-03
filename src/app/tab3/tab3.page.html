@@ -35,7 +35,7 @@
       </ion-item>
     }
   </ion-list>
-  <ion-button expand="block" color="primary" (click)="mostrarFormulario.set(true)">
+  <ion-button expand="block" color="primary" (click)="mostrarFormulario() ? cerrarFormulario() : abrirFormularioNuevo()">
     {{ mostrarFormulario() ? 'Cancelar' : 'Agregar deuda' }}
   </ion-button>
   <app-notification [message]="toastMessage()" [colorType]="colorType" [duration]="4000"></app-notification>
@@ -44,8 +44,9 @@
   <app-form
     [fields]="formFields"
     [idValue]="editarId"
+    [initialData]="formData"
     (submitForm)="agregarEditarDeuda($event)"
-    (cancelar)="mostrarFormulario.set(false)">
+    (cancelar)="cerrarFormulario()">
   </app-form>
 </ng-template>
 
@@ -55,9 +56,9 @@
 
 <app-dynamic-modal
   [show]="mostrarFormulario()"
-  [title]="'Agregar deuda'"
+  [title]="modalTitle"
   [template]="formTemplate"
-  (cerrar)="mostrarFormulario.set(false)">
+  (cerrar)="cerrarFormulario()">
 </app-dynamic-modal>
 
 <app-dynamic-modal

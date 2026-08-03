@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, concat, firstValueFrom, forkJoin, map, of, switchMap, take } from 'rxjs';
+import { Observable, catchError, forkJoin, map, of, switchMap, take } from 'rxjs';
 import { HttpResponse } from 'src/interfaces/http-response';
 import { Investments } from 'src/interfaces/investments';
 import { environment } from '../../environments/environment';
@@ -11,6 +11,7 @@ import { Cotizaciones } from 'src/interfaces/cotizaciones';
 })
 export class InversionesService {
   private http = inject(HttpClient);
+  private dolarMEPStored = sessionStorage.getItem('dolarMEP');
   constructor() {}
 
   private criptoUrl = `${environment.apiUrl}/cripto`;
@@ -21,20 +22,40 @@ export class InversionesService {
     return this.http.get<HttpResponse<any[]>>(this.criptoUrl + "?userId=" + userId);
   }
 
-  async agregarCripto(data: Investments, userId:number): Promise<Observable<HttpResponse<any>>> {
-   let errorResponse = of({
-           status: 'error',
-           success: false,
-           message: 'El símbolo no se pudo encontrar',
-           data: null
-         } as HttpResponse<any>);
-   const apiResponse = await firstValueFrom(this.getCriptosAPI([data.symbol]).pipe(take(1)))
-   if(apiResponse.success && apiResponse.data.length == 1 ) {
-    //la api si no encuentra la moneda te devuelve la lista completa
-      return this.http.post<HttpResponse<any>>(this.criptoUrl+ "?userId=" + userId, data);
-   } else {
-      return errorResponse
-   }
+  agregarCripto(data: Investments, userId:number): Observable<HttpResponse<any>> {
+    const errorResponse = {
+      status: 'error',
+      success: false,
+      message: 'El símbolo no se pudo encontrar',
+      data: null
+    } as HttpResponse<any>;
+
+    return this.getCriptosAPI([data.symbol]).pipe(
+      take(1),
+      switchMap((apiResponse: HttpResponse<any[]>) => {
+        const precio = apiResponse?.data?.[0]?.current_price;
+        if (!apiResponse?.success || apiResponse.data.length > 1) {
+          return of(errorResponse);
+        }
+
+        return this.http.post<HttpResponse<any>>(this.criptoUrl + "?userId=" + userId, data).pipe(
+          map((postResponse: HttpResponse<any>) => {
+            if (!postResponse.success) {
+              return postResponse;
+            }
+
+            return {
+              ...postResponse,
+              data: {
+                ...(postResponse.data ?? {}),
+                price: Number(precio),
+              }
+            };
+          })
+        );
+      }),
+      catchError(() => of(errorResponse))
+    );
   }
 
   actualizarCripto(id: number, data: any, userId: number): Observable<HttpResponse<any>> {
@@ -54,19 +75,45 @@ export class InversionesService {
     return this.http.get<HttpResponse<any[]>>(this.inversionesUrl+ "?userId=" + userId);
   }
 
-  async agregarInversion(data: Investments, userId:number): Promise<Observable<HttpResponse<any>>> {
-    try {
-      await firstValueFrom(this.getAPIacciones(data.symbol));
-      // si encuentra la acción se guarda en la base de datos
-      return this.http.post<HttpResponse<any>>(this.inversionesUrl + "?userId=" + userId, data);
-    } catch (error) {
-      return of({
-        status: 'error',
-        success: false,
-        message: 'El símbolo no se pudo encontrar',
-        data: null
-      } as HttpResponse<any>);
-    }
+  agregarInversion(data: Investments, userId:number): Observable<HttpResponse<any>> {
+    const errorResponse = {
+      status: 'error',
+      success: false,
+      message: 'El símbolo no se pudo encontrar',
+      data: null
+    } as HttpResponse<any>;
+
+    return this.getAPIacciones(data.symbol).pipe(
+      take(1),
+      switchMap((apiResponse: any) => {
+        const ultimoPrecio = apiResponse?.data?.ultimoPrecio;
+
+        if (!apiResponse?.success || ultimoPrecio == null || Number.isNaN(Number(ultimoPrecio))) {
+          return of(errorResponse);
+        }
+
+        return this.http.post<HttpResponse<any>>(this.inversionesUrl + "?userId=" + userId, data).pipe(
+          map((postResponse: HttpResponse<any>) => {
+            if (!postResponse.success) {
+              return postResponse;
+            }
+
+            //si la moneda es pesos pasarlo a dolar mep
+            const priceCalculated = apiResponse.data?.moneda == "peso_Argentino" ? ultimoPrecio /
+            (this.dolarMEPStored ? JSON.parse(this.dolarMEPStored).sell: 1): ultimoPrecio;
+
+            return {
+              ...postResponse,
+              data: {
+                ...(postResponse.data ?? {}),
+                price: priceCalculated,
+              }
+            };
+          })
+        );
+      }),
+      catchError(() => of(errorResponse))
+    );
   }
 
   editarInversion(id: number, data: any): Observable<HttpResponse<any>> {
@@ -101,7 +148,6 @@ export class InversionesService {
   }
 
   getAccionesConPrecio(userId:number): Observable<any[]> {
-    const dolarMEPStored = sessionStorage.getItem('dolarMEP'); 
     return this.getInversion(userId).pipe(
       switchMap((response: HttpResponse<Investments[]>) => {
         const misAcciones = response.data ?? [];
@@ -120,7 +166,7 @@ export class InversionesService {
                 }
                 //si la moneda es pesos pasarlo a dolar mep
                 const priceCalculated = response.moneda == "peso_Argentino" ? price /
-                (dolarMEPStored ? JSON.parse(dolarMEPStored).sell: 1): price;
+                (this.dolarMEPStored ? JSON.parse(this.dolarMEPStored).sell: 1): price;
                 return {
                   ...accion,
                   price: priceCalculated,
@@ -131,38 +177,6 @@ export class InversionesService {
           )
         }
         return forkJoin(obs$)
-        /* const symbols = misAcciones.map((c: any) => c.symbol);
-        if (!symbols.length || symbols.length === 0) return of([]);
-        return this.getAPIacciones().pipe(
-          map((precios: HttpResponse<any[]>) => {
-            if (!precios.success) return [];
-            // Filtrar precios para que solo queden los símbolos que están en misAcciones
-            // los símbolos se repiten ya que la API devuelve varias cotizaciones por símbolo,
-            // por lo que se filtra para que solo quede uno por símbolo
-            const uniqueSymbols = new Set<string>();
-
-            const preciosfiltered = !precios.data? [] : precios.data?.filter((precio: any) => {
-              if (!symbols.includes(precio.simbolo) || uniqueSymbols.has(precio.simbolo)) {
-                return false;
-              }
-
-              uniqueSymbols.add(precio.simbolo);
-              return true;
-            });
-
-            return preciosfiltered.map((precio: any) => {
-              const local = misAcciones.find((c: any) => (c.symbol as string).toLowerCase() === precio.simbolo.toLowerCase());
-              const price = Number(precio.ultimo)
-              const priceCalculated = precio.moneda == 'USD' ? price : price /
-              (dolarMEPStored ? JSON.parse(dolarMEPStored).sell: 1);
-              return {
-                ...local,
-                price: priceCalculated,
-                moneda: precio.moneda,
-              };
-            });
-          })
-        ); */
       })
     );
   }

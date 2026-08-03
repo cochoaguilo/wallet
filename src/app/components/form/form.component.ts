@@ -22,6 +22,7 @@ export class FormComponent implements OnInit, OnChanges {
   @Input() errors!: string[];
   @Input() includeId = true;
   @Input() idValue: number | null = null;
+  @Input() initialData: Record<string, any> | null = null;
   defaultButton = input(true);
   submitText = input("Guardar")
   @Output() submitForm = new EventEmitter<any>()
@@ -33,6 +34,25 @@ export class FormComponent implements OnInit, OnChanges {
   constructor() {}
 
   ngOnInit() {
+    this.buildForm();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!this.categoriaForm) {
+      this.buildForm();
+      return;
+    }
+
+    if (changes['idValue'] && this.categoriaForm.get('id')) {
+      this.categoriaForm.get('id')?.setValue(this.idValue ?? null);
+    }
+
+    if (changes['initialData'] || changes['fields']) {
+      this.patchFormValues(this.initialData);
+    }
+  }
+
+  private buildForm(): void {
     const group: any = {};
     this.fields.forEach(field => {
       group[field.name] = [field.type == 'text' ? '' : null, field.required && Validators.required];
@@ -40,13 +60,25 @@ export class FormComponent implements OnInit, OnChanges {
 
     group.id = [this.idValue ?? null];
     this.categoriaForm = this.fb.group(group);
+    this.patchFormValues(this.initialData);
   }
 
-  ngOnChanges(changes: SimpleChanges): void {
-    if (changes['idValue'] && this.categoriaForm?.get('id')) {
-      this.categoriaForm.get('id')?.setValue(this.idValue ?? null);
-      
+  private patchFormValues(data: Record<string, any> | null): void {
+    if (!this.categoriaForm) return;
+
+    const values = data ?? {};
+
+    if (this.categoriaForm.get('id')) {
+      this.categoriaForm.get('id')?.setValue(values['id'] ?? this.idValue ?? null);
     }
+
+    this.fields.forEach(field => {
+      const control = this.categoriaForm.get(field.name);
+      if (!control) return;
+
+      const value = values[field.name];
+      control.setValue(value ?? (field.type === 'text' ? '' : null));
+    });
   }
 
   submit() {

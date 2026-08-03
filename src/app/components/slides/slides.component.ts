@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { AfterViewChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, input } from '@angular/core';
+import { AfterViewChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, input, ViewEncapsulation } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { register } from 'swiper/element/bundle';
 import type { SwiperContainer } from 'swiper/element';
@@ -15,7 +15,8 @@ export interface SlideItem {
   imports: [CommonModule, IonicModule],
   templateUrl: './slides.component.html',
   styleUrls: ['./slides.component.scss'],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
+  encapsulation: ViewEncapsulation.None,
 })
 export class SlidesComponent implements AfterViewInit, AfterViewChecked {
   slides = input<SlideItem[]>([]);

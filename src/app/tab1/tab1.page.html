@@ -50,7 +50,7 @@
     <h2 class="chart-title">Gastos</h2>
     <app-bar-chart [categorias]="gastos" chartType="doughnut"> </app-bar-chart>
   </div>
-  <ion-button expand="block" color="primary"  (click)="mostrarFormulario = !mostrarFormulario">
+  <ion-button expand="block" color="primary"  (click)="mostrarFormulario ? cerrarFormulario() : abrirFormularioNuevo()">
       {{ mostrarFormulario ? 'Cancelar' : 'Agregar' }}
     </ion-button>
   <app-notification [message]="toastMessage()" [duration]="4000"></app-notification>
@@ -60,8 +60,9 @@
     [fields]="formFields"
     [defaultButton]="false"
     [idValue]="editarId"
+    [initialData]="formData"
     (submitForm)="agregarModificarCategoria($event)"
-    (cancelar)="mostrarFormulario = false"
+    (cancelar)="cerrarFormulario()"
   >
   </app-form>
 </ng-template>
@@ -72,9 +73,9 @@
 
 <app-dynamic-modal
   [show]="mostrarFormulario"
-  [title]="'Agregar o editar ahorro'"
+  [title]="modalTitle"
   [template]="formTemplate"
-  (cerrar)="mostrarFormulario = false">
+  (cerrar)="cerrarFormulario()">
 </app-dynamic-modal>
 
 <app-dynamic-modal

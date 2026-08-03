@@ -1,11 +1,10 @@
-import { Component, inject, OnDestroy, OnInit, ViewChild, signal } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { DeudasService } from '../services/deudas.service';
 import { Subscription } from 'rxjs';
 import { Forms } from 'src/interfaces/forms';
 import { Deudas } from 'src/interfaces/deudas';
 import { HttpResponse } from 'src/interfaces/http-response';
 import { NotificationComponent, themeColor } from '../components/notification/notification.component';
-import { FormComponent } from '../components/form/form.component';
 
 @Component({
   selector: 'app-tab3',
@@ -18,6 +17,7 @@ export class Tab3Page implements OnInit, OnDestroy {
 
   mostrarFormulario = signal(false);
   mostrarModalEliminar = false;
+  formData: Record<string, any> | null = null;
   deudaAEliminar!: Deudas;
   private userId:number;
   public deudas= signal<Deudas[]>([]);
@@ -32,8 +32,7 @@ export class Tab3Page implements OnInit, OnDestroy {
   ];
   editarIndex: number | undefined;
   editarId: any;
-  @ViewChild(FormComponent) formComponent!: FormComponent;
-  @ViewChild(NotificationComponent) notificationComponent!: NotificationComponent;
+  notificationComponent!: NotificationComponent;
   subscriptions: Subscription[] = [];
 
   constructor() {
@@ -80,25 +79,38 @@ export class Tab3Page implements OnInit, OnDestroy {
         }
       })
     );
-    this.mostrarFormulario.set(false);
+    this.cerrarFormulario();
   }
+
   editarDeuda(deuda: any, index: number) {
     this.editarIndex = index;
-    this.mostrarFormulario.set(true);
     this.editarId = deuda.id;
-    
-    // Rellena el formulario con los datos de la categoría seleccionada
-    setTimeout(() => {
-        if (this.formComponent && this.formComponent.categoriaForm) {
-          this.formFields.forEach(field => {
-            if (this.formComponent.categoriaForm.get(field.name)) {
-              const key = field.name;
-              this.formComponent.categoriaForm.get(field.name)?.setValue(deuda[key]);
-            }
-          });
-        }
-      }, 100);
+    this.formData = {
+      name: deuda.name,
+      description: deuda.description,
+      amount: deuda.amount,
+      id: deuda.id
+    };
+    this.mostrarFormulario.set(true);
   }
+  get modalTitle(): string {
+    return this.editarId !== null && this.editarId !== undefined ? 'Editar deuda' : 'Agregar deuda';
+  }
+
+  abrirFormularioNuevo() {
+    this.editarIndex = undefined;
+    this.editarId = null;
+    this.formData = null;
+    this.mostrarFormulario.set(true);
+  }
+
+  cerrarFormulario() {
+    this.editarIndex = undefined;
+    this.editarId = null;
+    this.formData = null;
+    this.mostrarFormulario.set(false);
+  }
+
   eliminarDeuda(deuda: Deudas) {
   this.deudaAEliminar = deuda;
   this.mostrarModalEliminar = true;

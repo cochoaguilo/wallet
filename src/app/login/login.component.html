@@ -5,16 +5,16 @@
 </ion-header>
 @if (isLoading()) {
   <ion-spinner name="crescent"></ion-spinner>
+} @else {
+  <ion-content>
+    <app-form
+      [fields]="loginFields"
+      [errors]="errors"
+      [defaultButton]="false"
+      submitText="Ingresar"
+      (submitForm)="onLogin($event)">
+      <ion-button [routerLink]="['/sign-in']" expand="block" color="medium">Crear cuenta</ion-button>
+    </app-form>
+    
+  </ion-content>
 }
-
-<ion-content>
-  <app-form
-    [fields]="loginFields"
-    [errors]="errors"
-    [defaultButton]="false"
-    submitText="Ingresar"
-    (submitForm)="onLogin($event)">
-    <ion-button [routerLink]="['/sign-in']" expand="block" color="medium">Crear cuenta</ion-button>
-  </app-form>
-  
-</ion-content>

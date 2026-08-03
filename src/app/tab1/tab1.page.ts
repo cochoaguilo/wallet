@@ -1,11 +1,10 @@
-import { Component, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { Savings } from 'src/interfaces/savings';
 import { AhorrosService } from '../services/ahorros.service';
-import { FormComponent } from '../components/form/form.component';
-import { NotificationComponent } from '../components/notification/notification.component';
 import { Subscription } from 'rxjs';
 import { Forms } from 'src/interfaces/forms';
 import { HttpResponse } from 'src/interfaces/http-response';
+import { NotificationComponent } from '../components/notification/notification.component';
 
 @Component({
   selector: 'app-tab1',
@@ -15,7 +14,6 @@ import { HttpResponse } from 'src/interfaces/http-response';
   standalone: false,
 })
 export class Tab1Page implements OnInit, OnDestroy {
-  @ViewChild(FormComponent) formComponent!: FormComponent;
   private ahorrosService = inject(AhorrosService);
   private userId:number;
 
@@ -28,8 +26,9 @@ export class Tab1Page implements OnInit, OnDestroy {
   public categorias = signal<Savings[]>([]);
   toastMessage = signal('');
   isToastOpen = signal(false)
-
+  notificationComponent!: NotificationComponent;
   mostrarFormulario = false;
+  formData: Record<string, any> | null = null;
   editarIndex: number | null = null;
   editarId: number  | null = null;
   private subscriptions: Subscription[] = [];
@@ -58,6 +57,7 @@ ngOnInit(): void {
   private mostrarNotificacion(mensaje: string) {
     this.toastMessage.set(mensaje);
     this.isToastOpen.set(true);
+    this.notificationComponent?.setOpen(true);
   }
 
   agregarModificarCategoria(data: Savings) {
@@ -99,27 +99,22 @@ ngOnInit(): void {
       );
     }
 
-    this.mostrarFormulario = false;
+    this.cerrarFormulario();
   }
 
   editarCategoria(categoria: Savings, index: number) {
-
-  this.editarIndex = index;
-  this.mostrarFormulario = true;
-  this.editarId = categoria.id;
-  
-  // Rellena el formulario con los datos de la categoría seleccionada
-  setTimeout(() => {
-      if (this.formComponent && this.formComponent.categoriaForm) {
-        this.formFields.forEach(field => {
-          if (this.formComponent.categoriaForm.get(field.name)) {
-            const key = field.name as keyof Savings;
-            this.formComponent.categoriaForm.get(field.name)?.setValue(categoria[key]);
-          }
-        });
-      }
-    });
-}
+    this.editarIndex = index;
+    this.editarId = categoria.id;
+    this.formData = {
+      type: categoria.type,
+      name: categoria.name,
+      description: categoria.description,
+      date: categoria.date,
+      quantity: categoria.quantity,
+      id: categoria.id
+    };
+    this.mostrarFormulario = true;
+  }
 
   get ingresos() {
     return this.categorias().filter(c => c.type === 'ingreso');
@@ -136,11 +131,26 @@ ngOnInit(): void {
   get saldo() {
     return this.totalIngresos - this.totalGastos;
   }
-  agregarCategoriaForm() {
+  get modalTitle(): string {
+    return this.editarId !== null ? 'Editar ahorro' : 'Agregar ahorro';
+  }
+
+  abrirFormularioNuevo() {
+    this.editarIndex = null;
+    this.editarId = null;
+    this.formData = null;
     this.mostrarFormulario = true;
   }
-  cancelar() {
+
+  cerrarFormulario() {
+    this.editarIndex = null;
+    this.editarId = null;
+    this.formData = null;
     this.mostrarFormulario = false;
+  }
+
+  cancelar() {
+    this.cerrarFormulario();
   }
   eliminarCategoria(id: number) {
     this.mostrarModalEliminar = true;
