@@ -44,7 +44,7 @@ formFields: Forms[] = [
     type: 'select',
     options: [
       { label: 'Criptomoneda', value: 'cripto' },
-      { label: 'Acción', value: 'accion' }
+      { label: 'Instrumento', value: 'accion' }
     ],
     required: true
   },
