@@ -10,6 +10,6 @@ ion-modal::part(backdrop) {
 }
 
 ion-modal ion-toolbar {
-  --background: rgb(14 116 144);
-  --color: white;
+  --background: var(--app-primary);
+  --color: var(--app-ink);
 }

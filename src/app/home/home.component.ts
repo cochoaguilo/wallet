@@ -33,13 +33,11 @@ export class HomeComponent  implements OnInit {
     ).subscribe(data => {
       if (!data.success) return;
       //por el momento solo guardo la info del dolar bolsa/MEP
-      this.slides.update(sl => sl = data.data.map(dt =>{
-        return {
-          title: dt.name,
-          description: `Compra: ${dt.buy} Venta: ${dt.sell}
-          `
-        }
-      }))
+      this.slides.update(sl => sl = data.data.map(dt => ({
+        title: dt.name,
+        buy: dt.buy,
+        sell: dt.sell,
+      })))
       
       const dolarMEP  = data.data.find((dol:Cotizaciones) => dol.origin == "BOLSA");
       sessionStorage.setItem("dolarMEP", JSON.stringify(dolarMEP))

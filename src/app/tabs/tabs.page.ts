@@ -14,6 +14,7 @@ export class TabsPage implements OnInit {
 
   public user!: User | null;
   public menuController = inject(MenuController);
+  public sidebarCollapsed = false;
   private router = inject(Router);
   constructor() {}
 
@@ -21,6 +22,13 @@ export class TabsPage implements OnInit {
     const userData = sessionStorage.getItem("USER");
     this.user = userData ? JSON.parse(userData) : null;
 
+    const storedCollapsed = localStorage.getItem("SIDEBAR_COLLAPSED");
+    this.sidebarCollapsed = storedCollapsed === "true";
+  }
+
+  toggleSidebar(): void {
+    this.sidebarCollapsed = !this.sidebarCollapsed;
+    localStorage.setItem("SIDEBAR_COLLAPSED", String(this.sidebarCollapsed));
   }
 
   closeSession() {

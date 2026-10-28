@@ -1,2 +1,41 @@
 // For information on how to create your own theme, please see:
 // http://ionicframework.com/docs/theming/
+
+:root {
+  // Core palette
+  --app-bg: #F3F8FF;
+  --app-surface: #FFFFFF;
+  --app-ink: #1C2433;
+  --app-muted: #6B7686;
+  --app-border: #DCE9FB;
+
+  // Brand
+  --app-primary: #4FA9E8;
+
+  // Category colors (ahorro/ingreso, inversion, deuda/gasto)
+  --app-mint: #2FBF9B;
+  --app-mint-dark: #0E8F72;
+  --app-mint-tint: #E3FBF5;
+
+  --app-lilac: #9B7EF0;
+  --app-lilac-dark: #6E4FCB;
+  --app-lilac-tint: #F1ECFE;
+
+  --app-coral: #FF8966;
+  --app-coral-dark: #C65A3B;
+  --app-coral-tint: #FFF0EA;
+
+  // Typography
+  --app-font-display: 'Sora', sans-serif;
+  --app-font-body: 'Plus Jakarta Sans', sans-serif;
+
+  /** primary -- repointed from Ionic's default blue to the app's light-blue brand color.
+   *  Contrast text uses --app-ink instead of white: white-on-#4FA9E8 only reaches ~2.6:1,
+   *  below the 4.5:1 AA minimum for normal text; dark ink reaches ~6:1. */
+  --ion-color-primary: #4FA9E8;
+  --ion-color-primary-rgb: 79, 169, 232;
+  --ion-color-primary-contrast: #1C2433;
+  --ion-color-primary-contrast-rgb: 28, 36, 51;
+  --ion-color-primary-shade: #4695cc;
+  --ion-color-primary-tint: #61b2ea;
+}

@@ -4,23 +4,35 @@
       @for (slide of slides(); track $index) {
         <swiper-slide class="slides__slide">
           <ion-card class="slides__card">
-            <ion-card-header>
-              <ion-card-title>{{ slide.title }}</ion-card-title>
-            </ion-card-header>
-    
-            <ion-card-content>
-              <p>{{ slide.description || slide.content }}</p>
+            <ion-card-content class="slides__content">
+              <span class="slides__label">{{ slide.title }}</span>
+              @if (slide.sell !== undefined) {
+                <span class="slides__hero">{{ slide.sell | currency:'USD' }}</span>
+                <div class="slides__stats">
+                  <div class="slides__stat">
+                    <span class="slides__stat-label">Compra</span>
+                    <span class="slides__stat-value">{{ slide.buy | currency:'USD' }}</span>
+                  </div>
+                  <div class="slides__stat">
+                    <span class="slides__stat-label">Venta</span>
+                    <span class="slides__stat-value">{{ slide.sell | currency:'USD' }}</span>
+                  </div>
+                  @if (spread(slide.buy, slide.sell); as sp) {
+                    <span class="slides__spread">brecha {{ sp }}%</span>
+                  }
+                </div>
+              } @else {
+                <p class="slides__description">{{ slide.description || slide.content }}</p>
+              }
             </ion-card-content>
           </ion-card>
         </swiper-slide>
       }
-      
     </swiper-container>
   </div>
 }
 @else {
   <div class="slides__empty">
-    <p>No hay slides disponibles.</p>
+    <p>No hay cotizaciones disponibles.</p>
   </div>
 }
-

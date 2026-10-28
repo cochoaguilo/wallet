@@ -36,14 +36,23 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
 
+body {
+  font-family: var(--app-font-body);
+  background: var(--app-bg);
+}
+
+h1, h2, h3, ion-title, ion-card-title {
+  font-family: var(--app-font-display);
+}
+
 .card-list {
     .card-item{
-        background-color: #fafafa;
+        background-color: var(--app-surface);
         padding: 10px 1rem;
-        border-radius: 1rem;
-        box-shadow: 1px 10px 19px -16px rgba(86,54,54,0.91);
--webkit-box-shadow: 1px 10px 19px -16px rgba(86,54,54,0.91);
--moz-box-shadow: 1px 10px 19px -16px rgba(86,54,54,0.91);
+        border-radius: 12px;
+        box-shadow: 0 2px 10px rgba(79, 169, 232, 0.12);
+-webkit-box-shadow: 0 2px 10px rgba(79, 169, 232, 0.12);
+-moz-box-shadow: 0 2px 10px rgba(79, 169, 232, 0.12);
     }
 }
 ion-spinner {

@@ -1,1 +1,65 @@
+ion-split-pane {
+  --side-width: 196px;
+  --side-min-width: 196px;
+  --side-max-width: 196px;
+}
 
+ion-split-pane.split-pane--collapsed {
+  --side-width: 64px;
+  --side-min-width: 64px;
+  --side-max-width: 64px;
+}
+
+.nav-menu {
+  --width: 196px;
+  --background: var(--app-surface);
+  border-right: 1px solid var(--app-border);
+}
+
+.nav-menu--collapsed {
+  --width: 64px;
+}
+
+.nav-menu__list {
+  padding: 8px;
+}
+
+.nav-menu__item {
+  --background: transparent;
+  --color: var(--app-ink);
+  --padding-start: 12px;
+  --inner-padding-end: 12px;
+  border-radius: 12px;
+  margin-bottom: 4px;
+
+  ion-icon {
+    color: var(--app-muted);
+  }
+}
+
+.nav-menu--collapsed .nav-menu__item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+
+  ion-icon {
+    margin-inline: auto;
+  }
+}
+
+.nav-menu__item--active {
+  --background: var(--app-primary-tint, rgba(79, 169, 232, 0.12));
+  --color: var(--app-primary);
+  font-weight: 600;
+
+  ion-icon {
+    color: var(--app-primary);
+  }
+}
+
+// The sidebar replaces the bottom tab bar once ion-split-pane
+// switches to its side-by-side layout, at the same breakpoint.
+@media (min-width: 992px) {
+  .mobile-tab-bar {
+    display: none;
+  }
+}
