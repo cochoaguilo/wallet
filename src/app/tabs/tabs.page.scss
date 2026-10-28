@@ -36,6 +36,12 @@ ion-split-pane.split-pane--collapsed {
   ion-icon {
     color: var(--app-muted);
   }
+
+  ion-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 .nav-menu--collapsed .nav-menu__item {
