@@ -14,6 +14,7 @@ ion-split-pane.split-pane--collapsed {
   --width: 196px;
   --background: var(--app-surface);
   border-right: 1px solid var(--app-border);
+  transition: width 0.25s ease, min-width 0.25s ease, max-width 0.25s ease;
 }
 
 .nav-menu--collapsed {
