@@ -4,7 +4,10 @@
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000'
+  apiUrl: 'http://localhost:3000',
+  // Client ID OAuth 2.0 (tipo "Aplicación web") de Google Cloud Console.
+  // Si queda vacío, el botón "Continuar con Google" no se muestra.
+  googleClientId: ''
 };
 
 /*

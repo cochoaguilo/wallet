@@ -1,9 +1,11 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { FormComponent } from '../components/form/form.component';
+import { GoogleButtonComponent } from '../components/google-button/google-button.component';
 import { AuthService } from '../services/auth.service';
-import { User } from 'src/interfaces/users';
-import { catchError, Subscription, take, tap } from 'rxjs';
+import { Login, User } from 'src/interfaces/users';
+import { HttpResponse } from 'src/interfaces/http-response';
+import { catchError, take } from 'rxjs';
 import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Forms } from 'src/interfaces/forms';
@@ -13,15 +15,13 @@ import { Forms } from 'src/interfaces/forms';
   templateUrl: './login.component.html',
   styleUrls: ['./login.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormComponent, RouterLink]
+  imports: [CommonModule, IonicModule, FormComponent, RouterLink, GoogleButtonComponent]
 })
 export class LoginComponent {
   isLoading = signal(false);
   errors: string[] = []
-  constructor(
-    private authService: AuthService,
-    private router: Router
-  ) {}
+  private authService = inject(AuthService);
+  private router = inject(Router);
 
   loginFields: Forms[] = [
     { name: 'mail', label: 'Email', type: 'text', required: true },
@@ -41,27 +41,36 @@ export class LoginComponent {
         take(1),
         catchError((err) => {
           this.isLoading.set(false);
-          this.errors = [err?.error.message || 'Error de autenticación']
+          this.errors = [err?.error?.message || 'Error de autenticación']
           return [];
         })
       )
-      .subscribe(response => {
-        this.isLoading.set(false);
-        if (response && response.data?.access_token) {
-          this.errors = [];
-          const expiresIn = response.data.expires_in || 200;
-          const expTimestamp = Date.now() + expiresIn * 1000;
-          sessionStorage.setItem("TOKEN_EXP", expTimestamp.toString());
-          sessionStorage.setItem("USER", JSON.stringify(response.data.user));
-          sessionStorage.setItem("TOKEN", response.data.access_token);
-          this.router.navigate(["tabs", "home"]);
-        } else {
-          this.errors = [response?.message || 'Credenciales incorrectas']
-        }
-      });
-
-    
+      .subscribe(response => this.handleLoginResponse(response, 'Credenciales incorrectas'));
   }
 
+  onGoogleLogin(credential: string) {
+    this.errors = [];
+    this.isLoading.set(true);
+    this.authService.loginWithGoogle(credential)
+      .pipe(
+        take(1),
+        catchError((err) => {
+          this.isLoading.set(false);
+          this.errors = [err?.error?.message || 'No se pudo iniciar sesión con Google'];
+          return [];
+        })
+      )
+      .subscribe(response => this.handleLoginResponse(response, 'No se pudo iniciar sesión con Google'));
+  }
 
+  private handleLoginResponse(response: HttpResponse<Login>, fallbackError: string) {
+    this.isLoading.set(false);
+    if (response && response.data?.access_token) {
+      this.errors = [];
+      this.authService.saveSession(response.data);
+      this.router.navigate(["tabs", "home"]);
+    } else {
+      this.errors = [response?.message || fallbackError];
+    }
+  }
 }

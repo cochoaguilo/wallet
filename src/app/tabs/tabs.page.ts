@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { MenuController } from '@ionic/angular';
 import { User } from 'src/interfaces/users';
+import { GoogleAuthService } from '../services/google-auth.service';
 
 @Component({
   selector: 'app-tabs',
@@ -15,6 +16,7 @@ export class TabsPage implements OnInit {
   public user!: User | null;
   public menuController = inject(MenuController);
   private router = inject(Router);
+  private googleAuth = inject(GoogleAuthService);
   constructor() {}
 
   ngOnInit(): void {
@@ -25,6 +27,7 @@ export class TabsPage implements OnInit {
 
   closeSession() {
     sessionStorage.clear()
+    this.googleAuth.signOut()
     this.router.navigate(["log-in"])
   }
 

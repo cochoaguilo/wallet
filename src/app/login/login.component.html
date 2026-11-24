@@ -14,6 +14,7 @@
       submitText="Ingresar"
       (submitForm)="onLogin($event)">
       <ion-button [routerLink]="['/sign-in']" expand="block" color="medium">Crear cuenta</ion-button>
+      <app-google-button text="signin_with" (credential)="onGoogleLogin($event)"></app-google-button>
     </app-form>
     
   </ion-content>

@@ -1,6 +1,7 @@
 import { Component, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { FormComponent } from '../components/form/form.component';
+import { GoogleButtonComponent } from '../components/google-button/google-button.component';
 import { AuthService } from '../services/auth.service';
 import { User } from 'src/interfaces/users';
 import { catchError, Subscription } from 'rxjs';
@@ -14,7 +15,7 @@ import { ToastController } from '@ionic/angular';
   templateUrl: './signin.component.html',
   styleUrls: ['./signin.component.scss'],
   standalone: true,
-  imports: [IonicModule, FormComponent]
+  imports: [IonicModule, FormComponent, GoogleButtonComponent]
 })
 export class SigninComponent implements OnDestroy{
 
@@ -50,6 +51,21 @@ export class SigninComponent implements OnDestroy{
             this.router.navigate(["log-in"]);
           }, 2000);
         } else await this.mostrarToast("Error al crear el usuario", "danger")
+      })
+    )
+  }
+
+  /** Registro con Google: el backend crea la cuenta (si no existe) y devuelve la sesión directamente. */
+  onGoogleSignUp(credential: string) {
+    this.subscriptions.push(
+      this.authService.loginWithGoogle(credential).pipe(
+        catchError(() => this.mostrarToast("No se pudo registrar con Google", "danger"))
+      )
+      .subscribe(async response => {
+        if (response?.data?.access_token) {
+          this.authService.saveSession(response.data);
+          this.router.navigate(["tabs", "home"]);
+        } else await this.mostrarToast(response?.message || "No se pudo registrar con Google", "danger")
       })
     )
   }
