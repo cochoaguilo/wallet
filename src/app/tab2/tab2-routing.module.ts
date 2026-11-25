@@ -6,7 +6,18 @@ const routes: Routes = [
   {
     path: '',
     component: Tab2Page,
-  }
+    data: { vista: 'ambos' },
+  },
+  {
+    path: 'acciones',
+    component: Tab2Page,
+    data: { vista: 'acciones' },
+  },
+  {
+    path: 'criptomonedas',
+    component: Tab2Page,
+    data: { vista: 'criptomonedas' },
+  },
 ];
 
 @NgModule({

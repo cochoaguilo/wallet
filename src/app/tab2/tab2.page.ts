@@ -1,4 +1,5 @@
 import { Component, inject, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { InversionesService } from '../services/inversiones.service';
 import { Investments } from 'src/interfaces/investments';
 import { FormComponent } from '../components/form/form.component';
@@ -6,6 +7,9 @@ import { NotificationComponent, themeColor } from '../components/notification/no
 import { Observable, Subject, take, takeUntil, takeWhile } from 'rxjs';
 import { Forms } from 'src/interfaces/forms';
 import { HttpResponse } from 'src/interfaces/http-response';
+
+type SeccionTab2 = 'acciones' | 'criptomonedas';
+type VistaTab2 = 'ambos' | SeccionTab2;
 
 @Component({
   selector: 'app-tab2',
@@ -21,7 +25,8 @@ export class Tab2Page implements OnInit, OnDestroy {
   acciones = signal<Investments[]>([]);
   loading = signal(false);
   toastMessage = signal('');
-  mostrarValores = signal(true);
+  mostrarValoresCripto = signal(true);
+  mostrarValoresAcciones = signal(true);
   mostrarModalEliminar = false;
   instrumentoAEliminar!:Investments;
   colorType: themeColor ="primary";
@@ -30,10 +35,13 @@ export class Tab2Page implements OnInit, OnDestroy {
   totalCriptos = signal(0);
   totalAcciones = signal(0);
   totalGeneral = signal(0);
+  vista = signal<VistaTab2>('ambos');
+  seccion = signal<SeccionTab2>('acciones');
   private userId: number;
   private destroy$ = new Subject<void>();
 
   private inversionesService = inject(InversionesService);
+  private route = inject(ActivatedRoute);
 
 mostrarFormulario = signal(false);
 
@@ -68,6 +76,11 @@ criterioAccion = 'mayorValor';
 
 
   ngOnInit() {
+    const vista = (this.route.snapshot.data['vista'] as VistaTab2) ?? 'ambos';
+    this.vista.set(vista);
+    if (vista !== 'ambos') {
+      this.seccion.set(vista);
+    }
     this.cargarInversiones();
   }
 
@@ -76,7 +89,7 @@ criterioAccion = 'mayorValor';
     this.inversionesService.getAllTypeInvestment(this.userId).pipe(
       takeUntil(this.destroy$)
     ).subscribe({
-      next: (data) => {                
+      next: (data) => {
         this.criptos.set(data.criptos ?? []);
         this.acciones.set(data.acciones ?? []);
         this.calcularTotales();
@@ -108,6 +121,17 @@ criterioAccion = 'mayorValor';
     return this.currentItemId() !== null || this.formData !== null ? 'Editar inversión' : 'Agregar inversión';
   }
 
+  get tituloPagina(): string {
+    switch (this.vista()) {
+      case 'acciones':
+        return 'Acciones';
+      case 'criptomonedas':
+        return 'Criptomonedas';
+      default:
+        return 'Inversiones';
+    }
+  }
+
   abrirFormularioNuevo() {
     this.currentItemId.set(null);
     this.formData = null;
@@ -119,7 +143,7 @@ criterioAccion = 'mayorValor';
     this.formData = null;
     this.mostrarFormulario.set(false);
   }
-  
+
 
   private async agregarEditarCripto(item: Investments) {
     const esEdicion = !!item.id;

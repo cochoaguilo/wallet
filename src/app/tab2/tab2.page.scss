@@ -1,0 +1,20 @@
+.card-item {
+  border-left: 4px solid var(--app-lilac);
+}
+
+ion-item.ion-color-light ion-label strong,
+ion-item[color="light"] ion-label strong {
+  color: var(--app-ink);
+}
+
+h2 {
+  font-family: var(--app-font-display);
+  color: var(--app-ink);
+}
+
+// Desktop navigates sections via the sidebar; mobile uses the segment.
+@media (min-width: 992px) {
+  .solo-mobile {
+    display: none;
+  }
+}

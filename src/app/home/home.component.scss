@@ -1,0 +1,18 @@
+ion-card {
+  border-left: 4px solid var(--app-border);
+  border-radius: 12px;
+}
+
+/* Ahorros card, then Deudas card (Inversiones/Balance are commented out in the template) */
+ion-card:nth-of-type(1) {
+  border-left-color: var(--app-mint);
+}
+ion-card:nth-of-type(2) {
+  border-left-color: var(--app-coral);
+}
+
+ion-card-content {
+  font-family: var(--app-font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--app-ink);
+}

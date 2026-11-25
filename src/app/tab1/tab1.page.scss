@@ -18,21 +18,32 @@
 
 .categoria-nombre {
   font-weight: 500;
-  color: #333;
+  color: var(--app-ink);
 }
 
 .categoria-cantidad {
   font-weight: bold;
-  color: #3880ff;
+  color: var(--app-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .categoria-tipo.gasto {
-  color: #eb445a;
+  color: var(--app-coral-dark);
   font-weight: bold;
 }
 .categoria-tipo.ingreso {
-  color: #2dd36f;
+  color: var(--app-mint-dark);
   font-weight: bold;
+}
+
+.card-item {
+  border-left: 4px solid var(--app-border);
+}
+.card-item:has(.categoria-tipo.ingreso) {
+  border-left-color: var(--app-mint);
+}
+.card-item:has(.categoria-tipo.gasto) {
+  border-left-color: var(--app-coral);
 }
 
 .chart-title {
@@ -40,5 +51,6 @@
   margin-bottom: 8px;
   font-size: 1.2em;
   font-weight: bold;
-  color: #222;
+  font-family: var(--app-font-display);
+  color: var(--app-ink);
 }

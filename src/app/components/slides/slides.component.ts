@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe } from '@angular/common';
 import { AfterViewChecked, AfterViewInit, Component, CUSTOM_ELEMENTS_SCHEMA, ElementRef, ViewChild, input, ViewEncapsulation } from '@angular/core';
 import { IonicModule } from '@ionic/angular';
 import { register } from 'swiper/element/bundle';
@@ -7,12 +7,14 @@ export interface SlideItem {
   title?: string;
   description?: string;
   content?: string;
+  buy?: number;
+  sell?: number;
 }
 
 @Component({
   selector: 'app-slides',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [CommonModule, IonicModule, CurrencyPipe],
   templateUrl: './slides.component.html',
   styleUrls: ['./slides.component.scss'],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
@@ -22,7 +24,7 @@ export class SlidesComponent implements AfterViewInit, AfterViewChecked {
   slides = input<SlideItem[]>([]);
   initialSlide = input(0);
   autoplay = input(true);
-  pagination = input(false);
+  pagination = input(true);
 
   @ViewChild('swiperRef', { static: false }) swiperRef?: ElementRef<SwiperContainer>;
 
@@ -66,5 +68,13 @@ export class SlidesComponent implements AfterViewInit, AfterViewChecked {
     }
 
     this.hasConfiguredSwiper = true;
+  }
+
+  spread(buy?: number, sell?: number): string | null {
+    if (!buy || !sell) {
+      return null;
+    }
+
+    return (((sell - buy) / buy) * 100).toFixed(1);
   }
 }
