@@ -1,7 +1,7 @@
 <ion-header [translucent]="true">
   <ion-toolbar>
     <ion-title>
-      Tab 2
+      {{ tituloPagina }}
     </ion-title>
   </ion-toolbar>
 </ion-header>
@@ -10,14 +10,23 @@
   @if(loading()) {
     <ion-spinner name="bubbles"></ion-spinner>
   }
-  
+
   @if(!loading()) {
     <div>
+      <ion-segment [value]="seccion()" (ionChange)="seccion.set($any($event).detail.value)" class="m-2" [class.solo-mobile]="vista() !== 'ambos'">
+        <ion-segment-button value="acciones">
+          <ion-label>Instrumentos</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="criptomonedas">
+          <ion-label>Criptomonedas</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+      @if (seccion() === 'criptomonedas') {
       <div class="d-flex justify-content-between m-2 align-items-center">
         <h2>Criptomonedas</h2>
         <div class="d-flex align-items-center">
-          <ion-button fill="clear" size="small" (click)="mostrarValores.set(!mostrarValores())" aria-label="Alternar visibilidad de valores">
-            <ion-icon [name]="mostrarValores() ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+          <ion-button fill="clear" size="small" (click)="mostrarValoresCripto.set(!mostrarValoresCripto())" aria-label="Alternar visibilidad de valores">
+            <ion-icon [name]="mostrarValoresCripto() ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
           </ion-button>
           <ion-button id="click-trigger">
             <ion-icon name="help-circle-outline"></ion-icon>
@@ -50,7 +59,7 @@
             <ion-label class="card-item">
               <strong>{{ cripto.name }}</strong> ({{ cripto.symbol | uppercase }}) - {{cripto.platform}}<br>
               Precio: {{ cripto.price | currency:'USD' }}
-              @if (mostrarValores()) {
+              @if (mostrarValoresCripto()) {
                 Tenencia: {{ cripto.hold || 0 }} {{ cripto.symbol | uppercase }}<br>
                 Valor total: {{
                   (cripto.hold || 0) * cripto.price | currency:'USD'
@@ -70,27 +79,34 @@
             </ion-label>
           </ion-item>
         }
-      
+
     </ion-list>
     <ion-item color="light">
       <ion-label>
-        
+
         <strong>Total Criptomonedas:</strong>
-        @if (mostrarValores()) {
+        @if (mostrarValoresCripto()) {
         {{ totalCriptos() | currency:'USD' }}
         } @else {••••••}
       </ion-label>
     </ion-item>
+      }
+      @if (seccion() === 'acciones') {
     <div class="d-flex justify-content-between m-2 align-items-center">
       <h2>Instrumentos</h2>
-      <ion-button id="click-acciones">
+      <div class="d-flex align-items-center">
+        <ion-button fill="clear" size="small" (click)="mostrarValoresAcciones.set(!mostrarValoresAcciones())" aria-label="Alternar visibilidad de valores">
+          <ion-icon [name]="mostrarValoresAcciones() ? 'eye-outline' : 'eye-off-outline'"></ion-icon>
+        </ion-button>
+        <ion-button id="click-acciones">
           <ion-icon name="help-circle-outline"></ion-icon>
         </ion-button>
+      </div>
         <ion-popover trigger="click-acciones" triggerAction="click">
           <ng-template>
-            <ion-content class="ion-padding">Agregue el instrumento que haya comprado. 
-              Pueden ser bonos, acciones o CEDEARs. 
-              Eliga pesos o dolares y 
+            <ion-content class="ion-padding">Agregue el instrumento que haya comprado.
+              Pueden ser bonos, acciones o CEDEARs.
+              Eliga pesos o dolares y
               se lo mostraremos en dolar MEP que es el cambio que utilizan las plataformas</ion-content>
           </ng-template>
         </ion-popover>
@@ -114,7 +130,7 @@
             <ion-label class="card-item">
               <strong>{{ accion.name || accion.symbol }}</strong> ({{ accion.symbol }}) - {{accion.platform}}<br>
               Precio: {{ accion.price | currency:'USD' }}
-              @if (mostrarValores()) {
+              @if (mostrarValoresAcciones()) {
                 - Tenencia: {{ accion.hold || 0 }} {{ accion.symbol }}<br>
                 Valor total: {{
                   (accion.hold || 0) * accion.price | currency:  'USD'
@@ -133,24 +149,24 @@
               </div>
             </ion-label>
           </ion-item>
-          
+
         }
-      
+
     </ion-list>
     <ion-item color="light">
   <ion-label>
     <strong>Total Acciones:</strong>
-    @if (mostrarValores()) {
+    @if (mostrarValoresAcciones()) {
       {{ totalAcciones() | currency:'USD' }}
     } @else {••••••}
-    
+
   </ion-label>
   </ion-item>
-  
-  <ion-item color="primary">
+  }
+  <ion-item color="primary" [class.solo-mobile]="vista() !== 'ambos'">
     <ion-label>
       <strong>Total General:</strong>
-      @if (mostrarValores()) {
+      @if (mostrarValoresCripto() && mostrarValoresAcciones()) {
       {{ totalGeneral() | currency:'USD' }}
       }@else {••••••}
     </ion-label>
@@ -160,7 +176,7 @@
       Agregar inversión
     </ion-button>
   }
-  
+
     </div>
   }
   <app-notification [message]="toastMessage()" [colorType]="colorType"></app-notification>
